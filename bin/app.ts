@@ -29,10 +29,10 @@ if (currentAccount && currentAccount !== config.account) {
 new AthleonStack(app, `Athleon-${environment}`, {
   stage: environment,
   config,
-  env: {
-    account: config.account,
-    region: config.region,
-  },
+  //env: {
+   // account: config.account,
+    //region: config.region,
+ // },
   tags: {
     Environment: environment,
     Project: 'Athleon',
