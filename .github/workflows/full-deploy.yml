@@ -45,7 +45,7 @@ jobs:
       - name: Assume Spoke Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ steps.account.outputs.account-id }}:role/GitHubActionsSpokeDeploymentRole-${{ matrix.environment == 'development' && 'dev' || 'prd' }}
+          role-to-assume: arn:aws:iam::${{ steps.account.outputs.account-id }}:role/GitHubActionsSpokeDeploymentRole-prd
           role-session-name: GitHubActions-Spoke-${{ matrix.environment }}-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
           role-chaining: true
