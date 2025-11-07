@@ -4,7 +4,8 @@
   "scripts": {
     "build:layer": "cd layers/athleon-shared && npm install --production",
     "cleanup:packages": "bash scripts/cleanup-lambda-packages.sh",
-    "deploy": "npm run build:layer && cdk deploy  --require-approval never",
+    "deploy": "npm run build:layer && npm run cdk:deploy",
+    "cdk:deploy": "if [ -n \"$CI\" ]; then cdk deploy --require-approval never; else cdk deploy --profile labvel-dev --require-approval never; fi",
     "deploy:fast": "cdk deploy  --require-approval never --hotswap",
     "test": "cd lambda && ./test-all.sh"
   },
