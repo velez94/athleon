@@ -7,6 +7,7 @@ import { AthleonSharedLayer } from './lambda-layer';
 
 export interface SharedStackProps {
   stage: string;
+  config?: any;
 }
 
 export class SharedStack extends Construct {
