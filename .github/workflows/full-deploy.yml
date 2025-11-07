@@ -65,7 +65,7 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          npm install
+          npm install --include=dev
           
 
       - name: Build layer
