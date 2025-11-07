@@ -24,11 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+      
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -54,11 +50,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-chaining: true
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+          
+
       - name: Install CDK
         run: npm install -g aws-cdk
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install backend dependencies
+        run: npm ci --prefer-offline
 
       - name: Deploy CDK stack
         id: cdk-deploy
