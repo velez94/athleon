@@ -16,6 +16,9 @@ permissions:
 jobs:
   deploy:
     runs-on: self-hosted
+    strategy:
+      matrix:
+        environment: [dev]
     steps:
       - uses: actions/checkout@v4
 
