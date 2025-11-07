@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const logger = require('/opt/nodejs/utils/logger');
+const { getCorsHeaders } = require('/opt/nodejs/utils/auth');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -9,13 +10,6 @@ const WODS_TABLE = process.env.WODS_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 const ORGANIZATION_MEMBERS_TABLE = process.env.ORGANIZATION_MEMBERS_TABLE;
 const SCORES_TABLE = process.env.SCORES_TABLE;
-
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': process.env.CORS_ORIGINS || '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
-};
 
 // Authorization helper with audit logging
 async function checkWodAccess(userId, userEmail, action, wodId = null, eventId = null) {
@@ -221,6 +215,8 @@ exports.handler = async (event) => {
     pathParameters: event.pathParameters,
     queryStringParameters: event.queryStringParameters
   });
+  
+  const headers = getCorsHeaders(event);
   
   // Handle preflight OPTIONS requests
   if (event.httpMethod === 'OPTIONS') {

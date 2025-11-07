@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateCommand, DeleteCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const { CognitoIdentityProviderClient, AdminGetUserCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { getCorsHeaders } = require('/opt/nodejs/utils/auth');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -37,6 +38,7 @@ async function getUserDetails(userId) {
 exports.handler = async (event) => {
   console.log('Organizations Service:', JSON.stringify(event, null, 2));
   
+  const headers = getCorsHeaders(event);
   const path = event.path;
   const method = event.httpMethod;
   const userId = event.requestContext?.authorizer?.claims?.sub;
@@ -57,7 +59,7 @@ exports.handler = async (event) => {
         
         return {
           statusCode: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify(orgs)
         };
       } else {
@@ -81,7 +83,7 @@ exports.handler = async (event) => {
         
         return {
           statusCode: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify(orgs.filter(o => o.organizationId))
         };
       }
@@ -116,7 +118,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 201,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({ organizationId, name: body.name })
       };
     }
@@ -133,7 +135,7 @@ exports.handler = async (event) => {
       if (!membership && !isSuperAdmin) {
         return {
           statusCode: 403,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify({ message: 'Not a member of this organization' })
         };
       }
@@ -146,7 +148,7 @@ exports.handler = async (event) => {
       if (!org) {
         return {
           statusCode: 404,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify({ message: 'Organization not found' })
         };
       }
@@ -159,7 +161,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({ ...org, creatorName })
       };
     }
@@ -177,7 +179,7 @@ exports.handler = async (event) => {
       if (!membership || !['owner', 'admin'].includes(membership.role)) {
         return {
           statusCode: 403,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify({ message: 'Insufficient permissions' })
         };
       }
@@ -212,7 +214,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({ message: 'Organization updated' })
       };
     }
@@ -237,7 +239,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify(membersWithDetails)
       };
     }
@@ -255,7 +257,7 @@ exports.handler = async (event) => {
       if (!membership || !['owner', 'admin'].includes(membership.role)) {
         return {
           statusCode: 403,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify({ message: 'Insufficient permissions' })
         };
       }
@@ -273,7 +275,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 201,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({ message: 'Member added' })
       };
     }
@@ -291,7 +293,7 @@ exports.handler = async (event) => {
       if (!membership || membership.role !== 'owner') {
         return {
           statusCode: 403,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify({ message: 'Only owners can change roles' })
         };
       }
@@ -306,7 +308,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({ message: 'Role updated' })
       };
     }
@@ -323,7 +325,7 @@ exports.handler = async (event) => {
       if (!membership || !['owner', 'admin'].includes(membership.role)) {
         return {
           statusCode: 403,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify({ message: 'Insufficient permissions' })
         };
       }
@@ -335,7 +337,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({ message: 'Member removed' })
       };
     }
@@ -352,7 +354,7 @@ exports.handler = async (event) => {
       if (!isSuperAdmin && (!membership || membership.role !== 'owner')) {
         return {
           statusCode: 403,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers,
           body: JSON.stringify({ message: 'Only owners can delete organizations' })
         };
       }
@@ -397,14 +399,14 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers,
         body: JSON.stringify({ message: 'Organization deleted' })
       };
     }
     
     return {
       statusCode: 404,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers,
       body: JSON.stringify({ message: 'Not found' })
     };
     
@@ -412,7 +414,7 @@ exports.handler = async (event) => {
     console.error('Error:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers,
       body: JSON.stringify({ message: error.message })
     };
   }

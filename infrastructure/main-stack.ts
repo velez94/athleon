@@ -4,6 +4,7 @@ import { Construct } from 'constructs';
 import { SharedStack } from './shared/shared-stack';
 import { NetworkStack } from './shared/network-stack';
 import { EventRouting } from './shared/event-routing';
+import { AnalyticsStack } from './analytics/analytics-stack';
 import { OrganizationsStack } from './organizations/organizations-stack';
 import { CompetitionsStack } from './competitions/competitions-stack';
 import { AthletesStack } from './athletes/athletes-stack';
@@ -93,7 +94,9 @@ export class AthleonStack extends cdk.Stack {
 
     const categoriesStack = new CategoriesStack(this, 'Categories', {
       stage: props.stage,
+      config: props.config,
       eventBus: sharedStack.eventBus,
+      sharedLayer: sharedStack.sharedLayer,
       organizationEventsTable: organizationsStack.organizationEventsTable,
       organizationMembersTable: organizationsStack.organizationMembersTable,
     });
@@ -106,6 +109,17 @@ export class AthleonStack extends cdk.Stack {
       organizationEventsTable: organizationsStack.organizationEventsTable,
       organizationMembersTable: organizationsStack.organizationMembersTable,
       scoresTable: scoringStack.scoresTable,
+    });
+
+    // Analytics Domain (event-driven)
+    const analyticsStack = new AnalyticsStack(this, 'Analytics', {
+      stage: props.stage,
+      api: networkStack.api,
+      authorizer: networkStack.authorizer,
+      sharedLayer: sharedStack.sharedLayer.layer,
+      eventBus: sharedStack.eventBus,
+      organizationMembersTable: organizationsStack.organizationMembersTable,
+      envConfig: props.config,
     });
 
     const authorizationStack = new AuthorizationStack(this, 'Authorization', {

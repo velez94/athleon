@@ -5,9 +5,14 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
 import { createBundledLambda } from '../shared/lambda-bundling';
+import { EnvironmentConfig } from '../config/environment-config';
+import { AthleonSharedLayer } from '../shared/lambda-layer';
 
 export interface CategoriesStackProps  {
-  stage: string;  eventBus: events.EventBus;
+  stage: string;  
+  config: EnvironmentConfig;
+  eventBus: events.EventBus;
+  sharedLayer: AthleonSharedLayer;
   organizationEventsTable: dynamodb.Table;
   organizationMembersTable: dynamodb.Table;
 }
@@ -35,12 +40,14 @@ export class CategoriesStack extends Construct {
 
     // Categories Lambda
     this.categoriesLambda = createBundledLambda(this, 'CategoriesLambda', 'categories', {
+      layers: [props.sharedLayer.layer],
       environment: {
         CATEGORIES_TABLE: this.categoriesTable.tableName,
         ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,
         ORGANIZATION_MEMBERS_TABLE: props.organizationMembersTable.tableName,
         DOMAIN_EVENT_BUS: this.categoriesEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+        ...props.config.lambda.environment,
       },
     });
 

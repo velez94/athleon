@@ -4,12 +4,14 @@ const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPassw
 
 const client = new CognitoIdentityProviderClient({ region: 'us-east-2' });
 
-const USER_POOL_ID = 'us-east-2_0m42KBG3O';
-const PASSWORD = 'Organizer123!';
+const USER_POOL_ID = 'us-east-2_Wsuyp4eVw';
+const PASSWORD = 'SuperAdmin123!';
 
 const organizers = [
+  'admin@athleon.fitness',
   'organizer1@test.com',
-  'organizer2@test.com'
+  'organizer2@test.com',
+  'athlete1@test.com'
 ];
 
 async function createOrganizers() {

@@ -8,6 +8,34 @@ const ORGANIZATION_MEMBERS_TABLE = process.env.ORGANIZATION_MEMBERS_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 
 /**
+ * Get proper CORS headers for the request
+ */
+function getCorsHeaders(event) {
+  const corsOrigins = process.env.CORS_ORIGINS || '*';
+  const requestOrigin = event.headers?.origin || event.headers?.Origin;
+  
+  let allowOrigin = '*';
+  
+  if (corsOrigins !== '*' && requestOrigin) {
+    const allowedOrigins = corsOrigins.split(',').map(o => o.trim());
+    if (allowedOrigins.includes(requestOrigin)) {
+      allowOrigin = requestOrigin;
+    } else if (allowedOrigins.includes('*')) {
+      allowOrigin = '*';
+    } else {
+      allowOrigin = allowedOrigins[0]; // Fallback to first allowed origin
+    }
+  }
+  
+  return {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+  };
+}
+
+/**
  * Extract user info from JWT token
  */
 function verifyToken(event) {
@@ -99,5 +127,6 @@ module.exports = {
   verifyToken,
   isSuperAdmin,
   checkOrganizationAccess,
-  getEventOrganization
+  getEventOrganization,
+  getCorsHeaders
 };

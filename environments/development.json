@@ -26,7 +26,7 @@
     "timeout": 30,
     "environment": {
       "LOG_LEVEL": "DEBUG",
-      "CORS_ORIGINS": "*"
+      "CORS_ORIGINS": "https://dev.athleon.fitness"
     }
   },
   "s3": {

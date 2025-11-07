@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const logger = require('/opt/nodejs/utils/logger');
+const { getCorsHeaders } = require('/opt/nodejs/utils/auth');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -8,13 +9,6 @@ const ddb = DynamoDBDocumentClient.from(client);
 const CATEGORIES_TABLE = process.env.CATEGORIES_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 const ORGANIZATION_MEMBERS_TABLE = process.env.ORGANIZATION_MEMBERS_TABLE;
-
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
-};
 
 // Authorization helper
 async function checkCategoryAccess(userId, userEmail, action, eventId = null) {
@@ -65,6 +59,8 @@ exports.handler = async (event) => {
     method: event.httpMethod, 
     path: event.path 
   });
+  
+  const headers = getCorsHeaders(event);
   
   // Handle preflight OPTIONS requests
   if (event.httpMethod === 'OPTIONS') {

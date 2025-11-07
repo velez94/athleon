@@ -3,6 +3,7 @@ import { API } from 'aws-amplify';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useParams, useNavigate } from 'react-router-dom';
+import './OrganizationManagement.css';
 
 function OrganizationManagement() {
   const { user } = useAuthenticator((context) => [context.user]);
