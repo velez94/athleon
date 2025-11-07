@@ -38,11 +38,18 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           audience: sts.amazonaws.com
           output-env-credentials: true
+      - name: Set account ID
+        id: account
+        run: |
+          case "${{ matrix.environment }}" in
+            dev) echo "account-id=${{ secrets.DEV_ACCOUNT_ID }}" >> $GITHUB_OUTPUT ;;
+            prod) echo "account-id=${{ secrets.PROD_ACCOUNT_ID }}" >> $GITHUB_OUTPUT ;;
+          esac
 
       - name: Assume Spoke Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets[format('{0}_ACCOUNT_ID', matrix.environment)] }}:role/GitHubActionsSpokeDeploymentRole-${{ github.event.repository.default_branch == 'main' && 'prd' || 'dev' }}
+          role-to-assume: arn:aws:iam::${{ steps.account.outputs.account-id }}:role/GitHubActionsSpokeDeploymentRole-${{ github.event.repository.default_branch == 'main' && 'prd' || 'dev' }}
           role-session-name: GitHubActions-Spoke-${{ matrix.environment }}-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
           role-chaining: true
