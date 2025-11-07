@@ -112,7 +112,7 @@ jobs:
       - name: Build frontend
         run: |
           cd frontend
-          npm ci
+          npm ci --legacy-peer-deps
           REACT_APP_ENVIRONMENT=${{ matrix.environment }} \
           REACT_APP_API_URL=${{ steps.outputs.outputs.api-url }} \
           REACT_APP_USER_POOL_ID=${{ steps.outputs.outputs.user-pool-id }} \
