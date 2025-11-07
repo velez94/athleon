@@ -60,7 +60,9 @@ jobs:
             frontend/package-lock.json
             layers/athleon-shared/package-lock.json
           
-
+      - name: Install CDK
+        run: npm install -g aws-cdk
+        
       - name: Install backend dependencies
         run: |
           npm install
