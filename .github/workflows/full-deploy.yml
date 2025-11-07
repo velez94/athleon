@@ -18,7 +18,7 @@ jobs:
     runs-on: self-hosted
     strategy:
       matrix:
-        environment: [dev]
+        environment: [development]
     environment: ${{ matrix.environment }}  
     
     steps:
