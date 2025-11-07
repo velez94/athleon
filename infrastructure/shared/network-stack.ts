@@ -2,6 +2,8 @@ import * as cdk from 'aws-cdk-lib';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import { Construct } from 'constructs';
 
 export interface NetworkStackProps  {
@@ -9,6 +11,7 @@ export interface NetworkStackProps  {
   userPool: cognito.UserPool;
   certificate?: acm.Certificate;
   apiDomain?: string;
+  hostedZone?: route53.IHostedZone;
 }
 
 export class NetworkStack extends Construct {
@@ -54,6 +57,15 @@ export class NetworkStack extends Construct {
         restApi: this.api,
         stage: this.api.deploymentStage,
       });
+
+      // Create Route 53 CNAME record for API domain
+      if (props.hostedZone && props.apiDomain) {
+        new route53.CnameRecord(this, 'ApiCnameRecord', {
+          zone: props.hostedZone,
+          recordName: props.apiDomain,
+          domainName: this.domainName.domainNameAliasDomainName,
+        });
+      }
     }
 
     // Add CORS headers to Gateway error responses

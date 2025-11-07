@@ -5,9 +5,14 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
 import { createBundledLambda } from '../shared/lambda-bundling';
+import { EnvironmentConfig } from '../config/environment-config';
+import { AthleonSharedLayer } from '../shared/lambda-layer';
 
 export interface WodsStackProps  {
-  stage: string;  eventBus: events.EventBus;
+  stage: string;  
+  config: EnvironmentConfig;
+  eventBus: events.EventBus;
+  sharedLayer: AthleonSharedLayer;
   organizationEventsTable: dynamodb.Table;
   organizationMembersTable: dynamodb.Table;
   scoresTable: dynamodb.Table;
@@ -36,6 +41,7 @@ export class WodsStack extends Construct {
 
     // WODs Lambda
     this.wodsLambda = createBundledLambda(this, 'WodsLambda', 'wods', {
+      layers: [props.sharedLayer.layer],
       environment: {
         WODS_TABLE: this.wodsTable.tableName,
         ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,
@@ -43,6 +49,7 @@ export class WodsStack extends Construct {
         SCORES_TABLE: props.scoresTable.tableName,
         DOMAIN_EVENT_BUS: this.wodsEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+        ...props.config.lambda.environment,
       },
     });
 

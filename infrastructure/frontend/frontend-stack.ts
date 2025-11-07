@@ -4,6 +4,7 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import { Construct } from 'constructs';
 
 export interface FrontendStackProps {
@@ -16,24 +17,36 @@ export interface FrontendStackProps {
 export class FrontendStack extends Construct {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
-  public readonly certificate?: acm.Certificate;
+  public readonly cloudfrontCertificate?: acm.Certificate;
+  public readonly apiCertificate?: acm.Certificate;
+  public readonly hostedZone?: route53.IHostedZone;
 
   constructor(scope: Construct, id: string, props: FrontendStackProps) {
     super(scope, id);
 
-    // Create ACM certificate for custom domain (CloudFront requires us-east-1)
-    this.certificate = props.domain ? (() => {
-      // Each environment has its own hosted zone for isolation
-      const hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
-        domainName: props.domain, // dev.athleon.fitness, staging.athleon.fitness, athleon.fitness
+    // Create certificates for custom domain
+    if (props.domain) {
+      // Lookup hosted zone
+      this.hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
+        domainName: props.domain,
       });
 
-      return new acm.Certificate(this, 'Certificate', {
+      // Certificate for CloudFront (must be in us-east-1)
+      this.cloudfrontCertificate = new acm.DnsValidatedCertificate(this, 'CloudFrontCertificate', {
         domainName: props.domain,
         subjectAlternativeNames: [`*.${props.domain}`],
-        validation: acm.CertificateValidation.fromDns(hostedZone),
+        hostedZone: this.hostedZone,
+        region: 'us-east-1',
+        certificateName: `${props.stage}-cloudfront-cert`,
       });
-    })() : undefined;
+
+      // Certificate for API Gateway (in current region)
+      this.apiCertificate = new acm.Certificate(this, 'ApiCertificate', {
+        domainName: `api.${props.domain}`,
+        validation: acm.CertificateValidation.fromDns(this.hostedZone),
+        certificateName: `${props.stage}-api-cert`,
+      });
+    }
 
     // S3 bucket for static website
     this.bucket = new s3.Bucket(this, 'WebsiteBucket', {
@@ -54,7 +67,7 @@ export class FrontendStack extends Construct {
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
       domainNames: props.domain ? [props.domain] : undefined,
-      certificate: this.certificate,
+      certificate: this.cloudfrontCertificate,
       defaultRootObject: 'index.html',
       errorResponses: [
         {
@@ -71,5 +84,14 @@ export class FrontendStack extends Construct {
         },
       ],
     });
+
+    // Create Route 53 A Record for custom domain
+    if (props.domain && this.hostedZone) {
+      new route53.ARecord(this, 'AliasRecord', {
+        zone: this.hostedZone,
+        recordName: props.domain,
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
+      });
+    }
   }
 }

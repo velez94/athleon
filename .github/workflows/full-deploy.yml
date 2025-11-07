@@ -90,7 +90,8 @@ jobs:
         id: outputs
         run: |
           STACK_NAME="Athleon-${{ matrix.environment }}"
-          echo "api-url=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' --output text)" >> $GITHUB_OUTPUT
+          API_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' --output text)
+          echo "api-url=${API_URL%/}" >> $GITHUB_OUTPUT
           echo "user-pool-id=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`UserPoolId`].OutputValue' --output text)" >> $GITHUB_OUTPUT
           echo "user-pool-client-id=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`UserPoolClientId`].OutputValue' --output text)" >> $GITHUB_OUTPUT
           echo "s3-bucket=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`FrontendBucket`].OutputValue' --output text)" >> $GITHUB_OUTPUT

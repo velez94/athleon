@@ -45,7 +45,7 @@
     "alarmNotifications": false
   },
   "frontend": {
-    "customDomain": false,
+    "customDomain": true,
     "caching": {
       "defaultTtl": 300,
       "maxTtl": 3600

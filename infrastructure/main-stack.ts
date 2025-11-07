@@ -43,8 +43,9 @@ export class AthleonStack extends cdk.Stack {
     const networkStack = new NetworkStack(this, 'Network', {
       stage: props.stage,
       userPool: sharedStack.userPool,
-      certificate: frontendStack.certificate,
+      certificate: frontendStack.apiCertificate,
       apiDomain: props.config.frontend.customDomain ? `api.${props.config.domain}` : undefined,
+      hostedZone: frontendStack.hostedZone,
     });
 
     // 3. Organizations (RBAC foundation)
@@ -99,7 +100,9 @@ export class AthleonStack extends cdk.Stack {
 
     const wodsStack = new WodsStack(this, 'Wods', {
       stage: props.stage,
+      config: props.config,
       eventBus: sharedStack.eventBus,
+      sharedLayer: sharedStack.sharedLayer,
       organizationEventsTable: organizationsStack.organizationEventsTable,
       organizationMembersTable: organizationsStack.organizationMembersTable,
       scoresTable: scoringStack.scoresTable,
@@ -241,12 +244,15 @@ export class AthleonStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'FrontendBucket', { value: frontendStack.bucket.bucketName });
     new cdk.CfnOutput(this, 'FrontendDistributionId', { value: frontendStack.distribution.distributionId });
     new cdk.CfnOutput(this, 'FrontendUrl', { 
-      value: props.config.domain && frontendStack.certificate 
+      value: props.config.domain && frontendStack.cloudfrontCertificate 
         ? `https://${props.config.domain}` 
         : `https://${frontendStack.distribution.distributionDomainName}` 
     });
-    if (frontendStack.certificate) {
-      new cdk.CfnOutput(this, 'CertificateArn', { value: frontendStack.certificate.certificateArn });
+    if (frontendStack.cloudfrontCertificate) {
+      new cdk.CfnOutput(this, 'CloudFrontCertificateArn', { value: frontendStack.cloudfrontCertificate.certificateArn });
+    }
+    if (frontendStack.apiCertificate) {
+      new cdk.CfnOutput(this, 'ApiCertificateArn', { value: frontendStack.apiCertificate.certificateArn });
     }
   }
 }
