@@ -72,13 +72,19 @@ jobs:
         run: npm run build:layer
 
 
-      - name: Deploy CDK stack
+      #- name: Deploy CDK stack
+      #  id: cdk-deploy
+      #  run: |
+      #    cdk deploy Athleon-${{ matrix.environment }} \
+      #      --context environment=${{ matrix.environment }} \
+      #      --require-approval never
+      - name: Deploy using existing script
         id: cdk-deploy
         run: |
-          cdk deploy Athleon-${{ matrix.environment }} \
-            --context environment=${{ matrix.environment }} \
-            --require-approval never
-
+          npm run deploy
+        env:
+          ENVIRONMENT: ${{ matrix.environment }}
+          
       - name: Get stack outputs
         id: outputs
         run: |
