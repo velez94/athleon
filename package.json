@@ -5,8 +5,8 @@
     "build:layer": "cd layers/athleon-shared && npm install --production",
     "cleanup:packages": "bash scripts/cleanup-lambda-packages.sh",
     "deploy": "npm run build:layer && npm run cdk:deploy",
-    "cdk:deploy": "if [ -n \"$CI\" ]; then cdk deploy --require-approval never; else cdk deploy --profile labvel-dev --require-approval never; fi",
-    "deploy:fast": "cdk deploy  --require-approval never --hotswap",
+    "cdk:deploy": "if [ -n \"$CI\" ]; then cdk deploy --all --require-approval never; else cdk deploy --all --profile labvel-dev --require-approval never; fi",
+    "deploy:fast": "cdk deploy  --all --require-approval never --hotswap",
     "deploy:frontend": "npm run generate:config && cd frontend && npm run build && npm run deploy:s3 && npm run invalidate:cloudfront",
     "generate:config": "./scripts/generate-frontend-config.sh",
     "test": "cd lambda && ./test-all.sh"

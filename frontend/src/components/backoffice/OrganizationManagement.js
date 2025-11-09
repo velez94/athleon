@@ -3,11 +3,12 @@ import { API } from 'aws-amplify';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useParams, useNavigate } from 'react-router-dom';
+import OrganizationSelector from './OrganizationSelector';
 import './OrganizationManagement.css';
 
 function OrganizationManagement() {
   const { user } = useAuthenticator((context) => [context.user]);
-  const { organizations, selectedOrganization, selectOrganization } = useOrganization();
+  const { organizations, selectedOrganization, selectOrganization, createOrganization } = useOrganization();
   const { organizationId } = useParams();
   const navigate = useNavigate();
   const [members, setMembers] = useState([]);
@@ -19,6 +20,9 @@ function OrganizationManagement() {
   const [newMemberRole, setNewMemberRole] = useState('member');
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newOrgName, setNewOrgName] = useState('');
+  const [newOrgDescription, setNewOrgDescription] = useState('');
 
   const isSuperAdmin = user?.attributes?.email === 'admin@athleon.fitness';
   const isOwnerOrAdmin = selectedOrganization && ['owner', 'admin'].includes(selectedOrganization.role);
@@ -146,10 +150,29 @@ function OrganizationManagement() {
     }
   };
 
+  const handleCreateOrganization = async (e) => {
+    e.preventDefault();
+    try {
+      await createOrganization(newOrgName, newOrgDescription);
+      setShowCreateModal(false);
+      setNewOrgName('');
+      setNewOrgDescription('');
+      setMessage('✅ Organization created successfully');
+    } catch (error) {
+      console.error('Error creating organization:', error);
+      setMessage('❌ Failed to create organization: ' + error.message);
+    }
+  };
+
   if (!selectedOrganization || (isSuperAdmin && selectedOrganization.organizationId === 'all')) {
     return (
       <div className="organization-management">
-        <h2>Organization Management</h2>
+        <div className="page-header">
+          <h2>Organization Management</h2>
+          <button onClick={() => setShowCreateModal(true)} className="btn-create-org btn-primary">
+            + New Organization
+          </button>
+        </div>
         {isSuperAdmin ? (
           <div>
             <p>Select a specific organization to manage from the dropdown above, or view all organizations below:</p>
@@ -549,6 +572,34 @@ function OrganizationManagement() {
           <h4>🔧 Super Admin View</h4>
           <p>You have super admin privileges and can manage all organizations.</p>
           <p><strong>Total Organizations:</strong> {organizations.length}</p>
+        </div>
+      )}
+
+      {showCreateModal && (
+        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Create Organization</h2>
+            <form onSubmit={handleCreateOrganization}>
+              <input
+                type="text"
+                placeholder="Organization Name"
+                value={newOrgName}
+                onChange={(e) => setNewOrgName(e.target.value)}
+                required
+              />
+              <textarea
+                placeholder="Description (optional)"
+                value={newOrgDescription}
+                onChange={(e) => setNewOrgDescription(e.target.value)}
+              />
+              <div className="modal-actions">
+                <button type="submit" className="btn-primary">Create</button>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="btn-secondary">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
