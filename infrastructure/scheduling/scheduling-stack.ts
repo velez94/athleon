@@ -9,7 +9,9 @@ import { Construct } from 'constructs';
 import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface SchedulingStackProps  {
-  stage: string;  eventBus: events.EventBus;
+  stage: string;
+  eventBus: events.EventBus;
+  sharedLayer: lambda.LayerVersion;
 }
 
 export class SchedulingStack extends Construct {
@@ -60,6 +62,7 @@ export class SchedulingStack extends Construct {
         DOMAIN_EVENT_BUS: this.schedulingEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
       },
+      layers: [props.sharedLayer],
     });
 
     this.schedulesTable.grantReadWriteData(this.schedulerLambda);

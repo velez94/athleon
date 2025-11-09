@@ -59,6 +59,7 @@ class AthleonStack extends cdk.Stack {
         const schedulingStack = new scheduling_stack_1.SchedulingStack(this, 'Scheduling', {
             stage: props.stage,
             eventBus: sharedStack.eventBus,
+            sharedLayer: sharedStack.sharedLayer,
         });
         const categoriesStack = new categories_stack_1.CategoriesStack(this, 'Categories', {
             stage: props.stage,

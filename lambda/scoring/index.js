@@ -4,7 +4,7 @@ const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbr
 const { calculateScore } = require('./calculator');
 
 // Import from Lambda Layer
-const { verifyToken, isSuperAdmin, checkOrganizationAccess } = require('/opt/nodejs/utils/auth');
+const { verifyToken, isSuperAdmin, checkOrganizationAccess, getCorsHeaders } = require('/opt/nodejs/utils/auth');
 const logger = require('/opt/nodejs/utils/logger');
 
 const client = new DynamoDBClient({});
@@ -90,12 +90,7 @@ exports.handler = async (event) => {
   }
   
   const method = event.httpMethod;
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
-  };
+  const headers = getCorsHeaders(event);
   
   // Handle preflight OPTIONS requests
   if (method === 'OPTIONS') {
@@ -336,7 +331,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: getCorsHeaders(event),
         body: JSON.stringify(Items || [])
       };
     }
@@ -402,7 +397,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 201,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: getCorsHeaders(event),
         body: JSON.stringify(item)
       };
     }
@@ -421,7 +416,7 @@ exports.handler = async (event) => {
       if (!existingScore) {
         return {
           statusCode: 404,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: getCorsHeaders(event),
           body: JSON.stringify({ message: 'Score not found' })
         };
       }
@@ -452,7 +447,7 @@ exports.handler = async (event) => {
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: getCorsHeaders(event),
         body: JSON.stringify({ message: 'Score updated' })
       };
     }
@@ -467,7 +462,7 @@ exports.handler = async (event) => {
     console.error('Error:', error);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: getCorsHeaders(event),
       body: JSON.stringify({ message: error.message })
     };
   }

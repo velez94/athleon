@@ -1063,19 +1063,27 @@ function AthleteManagement() {
           }
           .table-container {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
           }
           .athletes-table {
-            min-width: 600px;
+            min-width: 800px;
+            width: 100%;
           }
           .athletes-table th,
           .athletes-table td {
-            padding: 10px 8px;
-            font-size: 13px;
+            padding: 8px 6px;
+            font-size: 12px;
+            white-space: nowrap;
+          }
+          .athlete-name {
+            min-width: 120px;
           }
           .avatar {
-            width: 32px;
-            height: 32px;
-            font-size: 12px;
+            width: 28px;
+            height: 28px;
+            font-size: 11px;
           }
           .actions {
             flex-direction: column;
@@ -1084,11 +1092,36 @@ function AthleteManagement() {
           .btn-sm {
             width: 100%;
             text-align: center;
+            padding: 4px 8px;
+            font-size: 10px;
           }
           .competition-item {
             flex-direction: column;
             align-items: flex-start;
             gap: 10px;
+          }
+        }
+        @media (max-width: 320px) {
+          .table-container {
+            margin: 0 -8px;
+            border-radius: 0;
+          }
+          .athletes-table {
+            min-width: 700px;
+          }
+          .athletes-table th,
+          .athletes-table td {
+            padding: 6px 4px;
+            font-size: 11px;
+          }
+          .avatar {
+            width: 24px;
+            height: 24px;
+            font-size: 10px;
+          }
+          .btn-sm {
+            padding: 3px 6px;
+            font-size: 9px;
           }
           .modal-content {
             width: 95%;

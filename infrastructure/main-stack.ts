@@ -90,6 +90,7 @@ export class AthleonStack extends cdk.Stack {
     const schedulingStack = new SchedulingStack(this, 'Scheduling', {
       stage: props.stage,
       eventBus: sharedStack.eventBus,
+      sharedLayer: sharedStack.sharedLayer.layer,
     });
 
     const categoriesStack = new CategoriesStack(this, 'Categories', {
