@@ -152,6 +152,148 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Landing Page Styles */
+.landing-page {
+  min-height: 100vh;
+}
+
+.hero {
+  background: linear-gradient(135deg, #FF5722 0%, #B87333 100%);
+  min-height: 100vh;
+  color: white;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  position: relative;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-image {
+  height: 40px;
+  width: auto;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-right {
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+  z-index: 1000;
+}
+
+.language-toggle-header {
+  margin-bottom: 0;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-right: 120px; /* Space for language switcher */
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.nav-link:hover {
+  opacity: 0.8;
+  color: white;
+  text-decoration: none;
+}
+
+.auth-link {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.auth-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.mobile-menu-toggle span {
+  width: 25px;
+  height: 3px;
+  background: white;
+  margin: 3px 0;
+  transition: 0.3s;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem;
+  }
+  
+  .nav-right {
+    top: 1rem;
+    right: 4rem;
+  }
+  
+  .mobile-menu-toggle {
+    display: flex;
+  }
+  
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(255, 87, 34, 0.95);
+    flex-direction: column;
+    padding: 1rem;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    margin-right: 0;
+  }
+  
+  .nav-links-open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-right {
+    right: 3rem;
+  }
+  
+  .navbar {
+    padding: 0.5rem;
+  }
+}
+
 /* Utility Classes */
 .text-primary { color: var(--color-primary); }
 .text-secondary { color: var(--color-text-secondary); }

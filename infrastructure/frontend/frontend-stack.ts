@@ -26,7 +26,7 @@ export class FrontendStack extends Construct {
 
     // Create certificates for custom domain
     if (props.domain) {
-      // Lookup hosted zone
+      // Lookup existing hosted zone
       this.hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
         domainName: props.domain,
       });
@@ -68,6 +68,7 @@ export class FrontendStack extends Construct {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
+      "media-src 'self' data:",
       "font-src 'self' data:",
       `connect-src 'self' ${apiDomain} https://cognito-idp.${cognitoRegion}.amazonaws.com`,
       "frame-ancestors 'none'"

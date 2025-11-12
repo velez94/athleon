@@ -33,8 +33,11 @@ function LandingPage() {
             <span></span>
           </button>
           
+          <div className="nav-right">
+            <LanguageSwitcher className="language-toggle-header" />
+          </div>
+          
           <div className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}>
-            <LanguageSwitcher />
             <a href="/events" className="nav-link">
               {t('navigation.events')}
             </a>

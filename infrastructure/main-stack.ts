@@ -165,6 +165,10 @@ export class AthleonStack extends cdk.Stack {
     const publicWods = publicRoot.addResource('wods');
     publicWods.addMethod('GET', new apigateway.LambdaIntegration(wodsStack.wodsLambda));
 
+    // Public Scores
+    const publicScores = publicRoot.addResource('scores');
+    publicScores.addMethod('GET', new apigateway.LambdaIntegration(scoringStack.scoresLambda));
+
     // Athletes
     const athletes = networkStack.api.root.addResource('athletes');
     athletes.addMethod('ANY', new apigateway.LambdaIntegration(athletesStack.athletesLambda), {

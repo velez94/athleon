@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
@@ -16,22 +16,32 @@ import OrganizationManagement from './backoffice/OrganizationManagement';
 import ExerciseLibraryManager from './backoffice/ExerciseLibraryManager';
 import AuthorizationAdmin from './backoffice/AuthorizationAdmin';
 import { getOrganizerRole, ROLE_LABELS, hasPermission, PERMISSIONS } from '../utils/organizerRoles';
+import './BackofficeLayout.css';
 
 function BackofficeLayout({ user, signOut }) {
   const location = useLocation();
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const { t } = useTranslation();
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
   const [isLoading, setIsLoading] = useState(true);
   
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      const mobile = window.innerWidth <= 767;
+      setIsMobile(mobile);
+      // Auto-hide sidebar on mobile by default
+      if (mobile && sidebarVisible) {
+        setSidebarVisible(false);
+      }
     };
+    
     window.addEventListener('resize', handleResize);
     
     // Prevent flash of unstyled content
     const timer = setTimeout(() => setIsLoading(false), 100);
+    
+    // Set initial mobile state
+    handleResize();
     
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -62,115 +72,197 @@ function BackofficeLayout({ user, signOut }) {
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
   };
-
-  const getTogglePosition = () => {
-    if (window.innerWidth <= 768) {
-      return sidebarVisible ? '10px' : '10px';
-    } else if (window.innerWidth <= 992) {
-      return sidebarVisible ? '210px' : '20px';
-    } else if (window.innerWidth <= 1200) {
-      return sidebarVisible ? '230px' : '20px';
-    } else {
-      return sidebarVisible ? '260px' : '20px';
+  
+  const handleOverlayClick = () => {
+    if (isMobile) {
+      setSidebarVisible(false);
+    }
+  };
+  
+  const handleLinkClick = () => {
+    // Auto-close sidebar on mobile after clicking a link
+    if (isMobile) {
+      setSidebarVisible(false);
     }
   };
 
   return (
-    <div className="backoffice">
-      <button 
-        className={`sidebar-toggle ${sidebarVisible ? 'sidebar-open' : ''}`}
-        onClick={toggleSidebar}
-        style={{ left: getTogglePosition() }}
-      >
-        {sidebarVisible ? '←' : '→'}
-      </button>
-      
+    <div className="backoffice-layout">
       {/* Mobile overlay */}
       {sidebarVisible && isMobile && (
-        <div className="mobile-overlay" onClick={() => setSidebarVisible(false)}></div>
+        <div className="mobile-overlay" onClick={handleOverlayClick}></div>
       )}
       
+      {/* Sidebar */}
       <div className={`sidebar-container ${sidebarVisible ? '' : 'hidden'}`}>
         <nav className="backoffice-nav">
-        <div className="nav-header" onClick={() => window.location.href = '/admin-profile'}>
-          <div className="admin-info">
-            <span className="admin-icon">👤</span>
-            <div className="admin-text">
-              <h2>Athleon</h2>
-              <div className="user-info">
-                <span>{user?.attributes?.given_name}</span>
-                <span className="role-badge">{roleLabel}</span>
-                <LanguageSwitcher className="mb-2" />
-                <div onClick={(e) => { e.stopPropagation(); signOut(); }} className="logout-link">{t('navigation.logout')}</div>
+          <div className="nav-header" onClick={() => window.location.href = '/backoffice/admin-profile'}>
+            <div className="admin-info">
+              <span className="admin-icon" aria-label="User profile">👤</span>
+              <div className="admin-text">
+                <h2>Athleon</h2>
+                <div className="user-info">
+                  <span>{user?.attributes?.given_name || user?.username}</span>
+                  <span className="role-badge">{roleLabel}</span>
+                  <LanguageSwitcher className="mb-2" />
+                  <div 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      signOut(); 
+                    }} 
+                    className="logout-link"
+                    role="button"
+                    tabIndex={0}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        signOut();
+                      }
+                    }}
+                  >
+                    {t('navigation.logout')}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="nav-links">
-          {(organizerRole === 'super_admin' || organizerRole === 'owner' || organizerRole === 'admin') && (
-            <Link to="/backoffice/organization" className={isActive('/backoffice/organization') ? 'active' : ''}>
-              <span className="nav-icon">🏢</span>
-              <span className="nav-text">Organization</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.MANAGE_EVENTS) && (
-            <Link to="/backoffice/events" className={isActive('/backoffice/events') ? 'active' : ''}>
-              <span className="nav-icon">📅</span>
-              <span className="nav-text">Events</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.MANAGE_ATHLETES) && (
-            <Link to="/backoffice/athletes" className={isActive('/backoffice/athletes') ? 'active' : ''}>
-              <span className="nav-icon">👥</span>
-              <span className="nav-text">Athletes</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.MANAGE_CATEGORIES) && (
-            <Link to="/backoffice/categories" className={isActive('/backoffice/categories') ? 'active' : ''}>
-              <span className="nav-icon">🏷️</span>
-              <span className="nav-text">Categories</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.MANAGE_WODS) && (
-            <Link to="/backoffice/wods" className={isActive('/backoffice/wods') ? 'active' : ''}>
-              <span className="nav-icon">💪</span>
-              <span className="nav-text">WODs</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.MANAGE_WODS) && (
-            <Link to="/backoffice/exercises" className={isActive('/backoffice/exercises') ? 'active' : ''}>
-              <span className="nav-icon">🏋️</span>
-              <span className="nav-text">Exercise Library</span>
-            </Link>
-          )}
-          {(user?.email === 'admin@athleon.fitness' || user?.attributes?.email === 'admin@athleon.fitness') && (
-            <Link to="/backoffice/authorization" className={isActive('/backoffice/authorization') ? 'active' : ''}>
-              <span className="nav-icon">🔐</span>
-              <span className="nav-text">Authorization Admin</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.ENTER_SCORES) && (
-            <Link to="/backoffice/scores" className={isActive('/backoffice/scores') ? 'active' : ''}>
-              <span className="nav-icon">📝</span>
-              <span className="nav-text">Score Entry</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.VIEW_LEADERBOARDS) && (
-            <Link to="/backoffice/leaderboard" className={isActive('/backoffice/leaderboard') ? 'active' : ''}>
-              <span className="nav-icon">🏆</span>
-              <span className="nav-text">Leaderboard</span>
-            </Link>
-          )}
-          {hasPermission(organizerRole, PERMISSIONS.MANAGE_OWN_COMPETITIONS) && (
-            <Link to="/backoffice/analytics" className={isActive('/backoffice/analytics') ? 'active' : ''}>
-              <span className="nav-icon">📊</span>
-              <span className="nav-text">Analytics</span>
-            </Link>
-          )}
-        </div>
+          
+          <div className="nav-links">
+            {(organizerRole === 'super_admin' || organizerRole === 'owner' || organizerRole === 'admin') && (
+              <Link 
+                to="/backoffice/organization" 
+                className={isActive('/backoffice/organization') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">🏢</span>
+                  <span className="nav-text">Organization</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.MANAGE_EVENTS) && (
+              <Link 
+                to="/backoffice/events" 
+                className={isActive('/backoffice/events') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">📅</span>
+                  <span className="nav-text">Events</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.MANAGE_ATHLETES) && (
+              <Link 
+                to="/backoffice/athletes" 
+                className={isActive('/backoffice/athletes') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">👥</span>
+                  <span className="nav-text">Athletes</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.MANAGE_CATEGORIES) && (
+              <Link 
+                to="/backoffice/categories" 
+                className={isActive('/backoffice/categories') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">🏷️</span>
+                  <span className="nav-text">Categories</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.MANAGE_WODS) && (
+              <Link 
+                to="/backoffice/wods" 
+                className={isActive('/backoffice/wods') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">💪</span>
+                  <span className="nav-text">WODs</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.MANAGE_WODS) && (
+              <Link 
+                to="/backoffice/exercises" 
+                className={isActive('/backoffice/exercises') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">🏋️</span>
+                  <span className="nav-text">Exercise Library</span>
+                </div>
+              </Link>
+            )}
+            {(user?.email === 'admin@athleon.fitness' || user?.attributes?.email === 'admin@athleon.fitness') && (
+              <Link 
+                to="/backoffice/authorization" 
+                className={isActive('/backoffice/authorization') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">🔐</span>
+                  <span className="nav-text">Authorization Admin</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.ENTER_SCORES) && (
+              <Link 
+                to="/backoffice/scores" 
+                className={isActive('/backoffice/scores') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">📝</span>
+                  <span className="nav-text">Score Entry</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.VIEW_LEADERBOARDS) && (
+              <Link 
+                to="/backoffice/leaderboard" 
+                className={isActive('/backoffice/leaderboard') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">🏆</span>
+                  <span className="nav-text">Leaderboard</span>
+                </div>
+              </Link>
+            )}
+            {hasPermission(organizerRole, PERMISSIONS.MANAGE_OWN_COMPETITIONS) && (
+              <Link 
+                to="/backoffice/analytics" 
+                className={isActive('/backoffice/analytics') ? 'active' : ''}
+                onClick={handleLinkClick}
+              >
+                <div className="nav-content">
+                  <span className="nav-icon" aria-hidden="true">📊</span>
+                  <span className="nav-text">Analytics</span>
+                </div>
+              </Link>
+            )}
+          </div>
         </nav>
       </div>
 
+      {/* Toggle Button */}
+      <button 
+        className={`sidebar-toggle ${sidebarVisible ? 'sidebar-open' : ''}`}
+        onClick={toggleSidebar}
+        aria-label={sidebarVisible ? 'Close sidebar' : 'Open sidebar'}
+        aria-expanded={sidebarVisible}
+      >
+        {sidebarVisible ? '←' : '→'}
+      </button>
+
+      {/* Main Content */}
       <main className={`backoffice-content ${sidebarVisible ? 'sidebar-open' : ''}`}>
         <Routes>
           <Route path="events/:eventId/schedule/:scheduleId" element={<EventDetails />} />
@@ -193,320 +285,6 @@ function BackofficeLayout({ user, signOut }) {
           <Route path="*" element={<EventManagement />} />
         </Routes>
       </main>
-
-      <style jsx>{`
-        .backoffice {
-          display: flex;
-          height: 100vh;
-          position: relative;
-        }
-        .sidebar-toggle {
-          position: fixed;
-          bottom: 20px;
-          z-index: 1001;
-          background: #2c3e50;
-          color: white;
-          border: none;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          cursor: pointer;
-          font-size: 18px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-        }
-        .sidebar-toggle:hover {
-          background: #34495e;
-        }
-        .mobile-overlay {
-          display: none;
-        }
-        .sidebar-container {
-          width: 250px;
-          transition: width 0.3s ease;
-          flex-shrink: 0;
-          overflow: visible;
-        }
-        .sidebar-container.hidden {
-          width: 70px;
-        }
-        .sidebar-container.hidden .nav-text {
-          display: none;
-        }
-        .sidebar-container.hidden .nav-icon {
-          margin-right: 0;
-        }
-        .sidebar-container.hidden .admin-text {
-          display: none;
-        }
-        .sidebar-container.hidden .admin-icon {
-          margin: 0;
-        }
-        .backoffice-nav {
-          width: 100%;
-          background: #2c3e50;
-          color: white;
-          padding: 0;
-          height: 100vh;
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-        .backoffice-content {
-          flex: 1;
-          padding: 20px;
-          background: #ecf0f1;
-          overflow-y: auto;
-          transition: all 0.3s ease;
-        }
-        .nav-header {
-          padding: 20px;
-          border-bottom: 1px solid #34495e;
-          cursor: pointer;
-          transition: background 0.3s ease;
-        }
-        .nav-header:hover {
-          background: rgba(255,255,255,0.1);
-        }
-        .admin-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          width: 100%;
-        }
-        .admin-icon {
-          font-size: 24px;
-          min-width: 24px;
-          text-align: center;
-          color: #ecf0f1;
-        }
-        .admin-text {
-          flex: 1;
-        }
-        .nav-header h2 {
-          margin: 0;
-          color: #ecf0f1;
-        }
-        .user-info {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 5px;
-        }
-        .user-info span {
-          font-size: 12px;
-          color: #bdc3c7;
-        }
-        .role-badge {
-          background: linear-gradient(135deg, #ed7845, #f09035)
-          color: white;
-          padding: 3px 8px;
-          border-radius: 12px;
-          font-size: 10px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-        .logout-link {
-          color: #ff6b6b;
-          font-size: 11px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
-        .logout-link:hover {
-          color: #ff5252;
-        }
-        .nav-links {
-          padding: 20px 0;
-        }
-        .nav-links a {
-          display: flex;
-          align-items: center;
-          padding: 12px 20px;
-          color: #bdc3c7;
-          text-decoration: none;
-          border-left: 3px solid transparent;
-          transition: all 0.3s ease;
-          justify-content: flex-start;
-        }
-        .sidebar-container.hidden .nav-links a {
-          padding: 12px 8px;
-          justify-content: center;
-        }
-        .nav-icon {
-          font-size: 20px;
-          margin-right: 12px;
-          min-width: 24px;
-          text-align: center;
-          flex-shrink: 0;
-        }
-        .nav-text {
-          font-size: 14px;
-          font-weight: 500;
-        }
-        .nav-links a:hover,
-        .nav-links a.active {
-          background: #34495e;
-          color: white;
-          border-left-color: #3498db;
-        }
-        .backoffice-content {
-          flex: 1;
-          padding: 20px;
-          background: #ecf0f1;
-          overflow-y: auto;
-        }
-        @media (max-width: 1200px) {
-          .sidebar-container {
-            width: 220px;
-          }
-          .sidebar-toggle {
-            left: 230px;
-          }
-          .backoffice-nav {
-            width: 220px;
-          }
-        }
-        @media (max-width: 992px) {
-          .sidebar-container {
-            width: 200px;
-          }
-          .sidebar-toggle {
-            left: 210px;
-          }
-          .backoffice-nav {
-            width: 200px;
-          }
-        }
-        @media (max-width: 768px) {
-          .sidebar-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 80vw;
-            max-width: 280px;
-            height: 100vh;
-            z-index: 1000;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-            background: #2c3e50;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-          }
-          .sidebar-container:not(.hidden) {
-            transform: translateX(0);
-          }
-          .sidebar-container.hidden {
-            transform: translateX(-100%);
-            width: 80vw;
-            max-width: 280px;
-          }
-          .backoffice-content {
-            margin-left: 0;
-            width: 100%;
-            min-height: 100vh;
-            padding: 60px 15px 15px;
-            background: #f8f9fa;
-            overflow-x: hidden;
-            position: relative;
-            z-index: 1;
-          }
-          .backoffice-content.sidebar-open {
-            z-index: 1;
-          }
-          .sidebar-toggle {
-            display: block;
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            z-index: 1002;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-          }
-          .sidebar-toggle:hover {
-            background: #0056b3;
-          }
-          .mobile-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-            display: block;
-          }
-        }
-        @media (min-width: 769px) {
-          .sidebar-container.hidden {
-            width: 60px;
-          }
-          .sidebar-container.hidden .nav-text {
-            display: none;
-          }
-          .sidebar-container.hidden .admin-text {
-            display: none;
-          }
-          .sidebar-container.hidden .nav-links a {
-            padding: 12px 8px;
-            justify-content: center;
-          }
-          .sidebar-container.hidden .nav-icon {
-            margin-right: 0;
-          }
-          .mobile-overlay {
-            display: none;
-          }
-        }
-        @media (max-width: 480px) {
-          .sidebar-toggle {
-            width: 30px;
-            height: 30px;
-            font-size: 14px;
-            bottom: 15px;
-            left: 15px;
-          }
-          .backoffice-content {
-            padding: 50px 10px 10px;
-          }
-          .nav-header {
-            padding: 15px;
-          }
-          .nav-header h2 {
-            font-size: 18px;
-          }
-          .nav-links a {
-            padding: 12px 15px;
-            font-size: 14px;
-          }
-        }
-        @media (max-width: 320px) {
-          .sidebar-toggle {
-            width: 28px;
-            height: 28px;
-            font-size: 12px;
-          }
-          .backoffice-content {
-            padding: 45px 8px 8px;
-          }
-          .nav-header {
-            padding: 12px;
-          }
-          .nav-header h2 {
-            font-size: 16px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

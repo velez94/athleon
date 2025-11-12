@@ -39,8 +39,8 @@ function PublicEvents() {
           <img src="/athleon-white-crop.PNG" alt="Athleon" className="logo-image" />
           <span className="logo-text">Athleon</span>
         </div>
-        <div className="nav-links">
-          <LanguageSwitcher />
+        <div className="nav-right">
+          <LanguageSwitcher className="language-toggle-header" />
         </div>
       </nav>
 

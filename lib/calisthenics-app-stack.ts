@@ -958,9 +958,29 @@ export class CalisthenicsAppStack extends cdk.Stack {
     const publicSchedulesProxy = publicSchedules.addResource('{proxy+}');
     publicSchedulesProxy.addMethod('GET', new apigateway.LambdaIntegration(publicSchedulesLambda));
 
-    // Public endpoint for scores - /public/scores (no auth required)
+    // Public endpoint for scores - /public/scores (no auth required) - CORS fix v2
     const publicScores = publicResource.addResource('scores');
     publicScores.addMethod('GET', new apigateway.LambdaIntegration(scoresLambda));
+    publicScores.addMethod('OPTIONS', new apigateway.MockIntegration({
+      integrationResponses: [{
+        statusCode: '200',
+        responseParameters: {
+          'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+          'method.response.header.Access-Control-Allow-Origin': "'*'",
+          'method.response.header.Access-Control-Allow-Methods': "'GET,OPTIONS'"
+        }
+      }],
+      requestTemplates: { 'application/json': '{"statusCode": 200}' }
+    }), {
+      methodResponses: [{
+        statusCode: '200',
+        responseParameters: {
+          'method.response.header.Access-Control-Allow-Headers': true,
+          'method.response.header.Access-Control-Allow-Origin': true,
+          'method.response.header.Access-Control-Allow-Methods': true
+        }
+      }]
+    });
 
     // Public endpoint for WODs - /public/wods (no auth required)
     const publicWods = publicResource.addResource('wods');
