@@ -51,11 +51,14 @@ function PublicEventDetail() {
       </div>
 
       <div className="cta-section">
-        <h2>Interested in Competing?</h2>
-        <p>Sign in to view full event details, workouts, and live leaderboards</p>
-        <button onClick={() => navigate('/login')} className="btn-primary">
-          Sign In to View More
+        <h2>View Full Event Details</h2>
+        <p>See categories, workouts, schedules, and live leaderboards</p>
+        <button onClick={() => navigate(`/athlete/events/${eventId}`)} className="btn-primary">
+          View Event Details
         </button>
+        <p className="signin-note">
+          Want to compete? <span onClick={() => navigate('/login')} className="signin-link">Sign in here</span>
+        </p>
       </div>
 
       <style jsx>{`
@@ -137,6 +140,19 @@ function PublicEventDetail() {
         .btn-primary:hover {
           transform: translateY(-2px);
           box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+        }
+        .signin-note {
+          margin-top: 24px;
+          font-size: 14px;
+          opacity: 0.9;
+        }
+        .signin-link {
+          text-decoration: underline;
+          cursor: pointer;
+          font-weight: 600;
+        }
+        .signin-link:hover {
+          opacity: 0.8;
         }
         .status-badge {
           padding: 6px 14px;

@@ -20,6 +20,7 @@ const PublicEvents = lazy(() => import('./components/PublicEvents'));
 const PublicWODs = lazy(() => import('./components/PublicWODs'));
 const PublicExercises = lazy(() => import('./components/PublicExercises'));
 const PublicEventDetail = lazy(() => import('./components/PublicEventDetail'));
+const AthleteEventDetails = lazy(() => import('./components/athlete/AthleteEventDetails'));
 
 // Configuration from environment variables
 Amplify.configure({
@@ -235,8 +236,8 @@ function App() {
               <Route path="/wods" element={<PublicWODs />} />
               <Route path="/exercises" element={<PublicExercises />} />
               <Route path="/events/:eventId" element={<PublicEventDetail />} />
+              <Route path="/athlete/events/:eventId" element={<AthleteEventDetails />} />
               <Route path="/login" element={<AuthPageWrapper />} />
-              <Route path="/athlete/events/:eventId" element={<AuthPage />} />
               <Route path="/athlete/:athleteId" element={<AuthPage />} />
               <Route path="/backoffice/*" element={<AuthPage />} />
               <Route path="/*" element={<AuthPage />} />

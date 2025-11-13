@@ -122,6 +122,19 @@ function PublicExercises() {
           <img src="/athleon-white-crop.PNG" alt="Athleon" className="logo-image" />
           <span className="logo-text">Athleon</span>
         </div>
+        
+        <div className="nav-links">
+          <a href="/events" className="nav-link">
+            {t('navigation.events')}
+          </a>
+          <a href="/wods" className="nav-link">
+            WODs Library
+          </a>
+          <a href="/exercises" className="nav-link">
+            Exercises Library
+          </a>
+        </div>
+        
         <div className="nav-right">
           <LanguageSwitcher className="language-toggle-header" />
         </div>
@@ -232,8 +245,24 @@ function PublicExercises() {
         }
         .nav-links {
           display: flex;
-          gap: 15px;
+          gap: 8px;
           align-items: center;
+          flex: 1;
+          justify-content: center;
+        }
+        .nav-link {
+          color: white;
+          text-decoration: none;
+          font-size: 15px;
+          font-weight: 500;
+          padding: 10px 18px;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          white-space: nowrap;
+        }
+        .nav-link:hover {
+          background: rgba(255, 255, 255, 0.15);
+          transform: translateY(-1px);
         }
         .hero {
           text-align: center;
@@ -371,6 +400,9 @@ function PublicExercises() {
         @media (max-width: 768px) {
           .navbar {
             padding: 12px 4%;
+          }
+          .nav-links {
+            display: none;
           }
           .logo-image {
             width: 36px;
