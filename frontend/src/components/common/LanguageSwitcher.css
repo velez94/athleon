@@ -37,3 +37,30 @@
   color: white;
   transform: translateY(-1px);
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .language-switcher {
+    padding: 3px;
+  }
+  
+  .language-switcher .btn {
+    min-width: 34px;
+    padding: 7px 11px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-switcher {
+    padding: 2px;
+    border-radius: 10px;
+  }
+  
+  .language-switcher .btn {
+    min-width: 30px;
+    padding: 6px 9px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+}

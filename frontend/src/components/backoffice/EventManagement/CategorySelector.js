@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { API } from 'aws-amplify';
+import { normalizeCategoryIds, isCategorySelected } from '../../../utils/categoryHelpers';
 
 /**
  * CategorySelector Component
  * Allows selecting categories for an event
+ * Handles both array of IDs and array of category objects
  */
 const CategorySelector = ({ selectedCategories = [], onChange }) => {
   const [categories, setCategories] = useState([]);
@@ -27,10 +29,34 @@ const CategorySelector = ({ selectedCategories = [], onChange }) => {
   };
 
   const handleToggle = (categoryId) => {
-    if (selectedCategories.includes(categoryId)) {
-      onChange(selectedCategories.filter(id => id !== categoryId));
+    const isCurrentlySelected = isCategorySelected(categoryId, selectedCategories);
+    
+    // Determine the format to use based on current selectedCategories
+    const useObjectFormat = selectedCategories.length > 0 && 
+                           typeof selectedCategories[0] === 'object' && 
+                           selectedCategories[0] !== null;
+    
+    if (isCurrentlySelected) {
+      // Remove category
+      if (useObjectFormat) {
+        onChange(selectedCategories.filter(cat => 
+          (cat.categoryId || cat.id) !== categoryId
+        ));
+      } else {
+        onChange(selectedCategories.filter(id => id !== categoryId));
+      }
     } else {
-      onChange([...selectedCategories, categoryId]);
+      // Add category
+      if (useObjectFormat) {
+        const category = categories.find(c => c.categoryId === categoryId);
+        onChange([...selectedCategories, { 
+          categoryId: category.categoryId,
+          name: category.name,
+          maxParticipants: null 
+        }]);
+      } else {
+        onChange([...selectedCategories, categoryId]);
+      }
     }
   };
 
@@ -53,7 +79,7 @@ const CategorySelector = ({ selectedCategories = [], onChange }) => {
       
       <div className="categories-grid">
         {categories.map(category => {
-          const isSelected = selectedCategories.includes(category.categoryId);
+          const isSelected = isCategorySelected(category.categoryId, selectedCategories);
           
           return (
             <label 

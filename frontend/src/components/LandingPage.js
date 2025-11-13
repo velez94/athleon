@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
@@ -8,6 +8,36 @@ function LandingPage() {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('organizers');
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [navigate]);
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileMenuOpen]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
   
   const handleGetStarted = () => {
     navigate('/login');
@@ -26,31 +56,55 @@ function LandingPage() {
           <button 
             className="mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
           >
-            <span></span>
-            <span></span>
-            <span></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
           </button>
           
           <div className="nav-right">
             <LanguageSwitcher className="language-toggle-header" />
           </div>
           
-          <div className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}>
-            <a href="/events" className="nav-link">
+          <nav 
+            id="mobile-navigation"
+            className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}
+            aria-label="Main navigation"
+          >
+            <a 
+              href="/events" 
+              className="nav-link landing-nav-link"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               {t('navigation.events')}
             </a>
-            <a href="/wods" className="nav-link">
+            <a 
+              href="/wods" 
+              className="nav-link landing-nav-link"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               WODs Library
             </a>
-            <a href="/exercises" className="nav-link">
+            <a 
+              href="/exercises" 
+              className="nav-link landing-nav-link"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               Exercises Library
             </a>
-            <div className="auth-link" onClick={handleGetStarted}>
+            <button 
+              className="auth-link" 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleGetStarted();
+              }}
+            >
               Sign In
-            </div>
-          </div>
+            </button>
+          </nav>
         </nav>
 
         <div className="hero-content">
@@ -224,13 +278,20 @@ function LandingPage() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 20px 5%;
-          background: rgba(255, 255, 255, 0.95);
+          padding: 16px 5%;
+          background: rgba(255, 255, 255, 0.98);
           backdrop-filter: blur(10px);
           position: sticky;
           top: 0;
           z-index: 100;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+          gap: 20px;
+        }
+        
+        .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
 
         .logo {
@@ -271,33 +332,46 @@ function LandingPage() {
         .nav-links {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 8px;
+          flex-direction: row;
         }
 
-        .nav-link {
-          color: #6B7C93;
+        .landing-nav-link {
+          color: #6B7C93 !important;
           text-decoration: none;
-          font-weight: 500;
-          transition: color 0.3s;
+          font-size: 15px;
+          font-weight: 600;
+          padding: 10px 18px;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          position: relative;
+          white-space: nowrap;
         }
 
-        .nav-link:hover {
-          color: #B87333;
+        .landing-nav-link:hover {
+          color: #FF5722 !important;
+          background: rgba(255, 87, 34, 0.08);
+          transform: translateY(-1px);
+          opacity: 1;
         }
 
         .auth-link {
-          background: #B87333;
+          background: linear-gradient(135deg, #FF5722 0%, #FF8A65 100%);
           color: white;
-          padding: 10px 20px;
-          border-radius: 25px;
+          padding: 10px 24px;
+          border-radius: 8px;
           cursor: pointer;
           font-weight: 600;
-          transition: all 0.3s;
+          font-size: 15px;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(255, 87, 34, 0.25);
+          white-space: nowrap;
         }
 
         .auth-link:hover {
-          background: #A0632B;
+          background: linear-gradient(135deg, #E64A19 0%, #FF7043 100%);
           transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 87, 34, 0.35);
         }
 
         /* Hero Section */
@@ -374,44 +448,7 @@ function LandingPage() {
           transform: translateY(-2px);
         }
 
-        .nav-links {
-          display: flex;
-          gap: 15px;
-          align-items: center;
-        }
 
-        .nav-link {
-          color: #6B7C93;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 500;
-          padding: 8px 16px;
-          border-radius: 8px;
-          transition: all 0.3s ease;
-          position: relative;
-        }
-
-        .nav-link:hover {
-          color: #FF5722;
-          background: rgba(255, 87, 34, 0.1);
-        }
-
-        .auth-link {
-          color: white;
-          font-size: 14px;
-          font-weight: 600;
-          padding: 8px 16px;
-          background: linear-gradient(135deg, #FF5722 0%, #FF8A65 100%);
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3);
-        }
-
-        .auth-link:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
-        }
 
         .cta-primary {
           display: flex;
@@ -709,6 +746,7 @@ function LandingPage() {
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
+            gap: 0;
           }
 
           .nav-links-open {
@@ -717,16 +755,25 @@ function LandingPage() {
             visibility: visible;
           }
 
-          .nav-link, .auth-link {
-            padding: 10px 0;
-            text-align: center;
+          .landing-nav-link {
+            width: 100%;
+            padding: 14px 20px;
+            text-align: left;
             border-bottom: 1px solid rgba(107, 124, 147, 0.1);
+            border-radius: 0;
+          }
+          
+          .landing-nav-link:hover {
+            background: rgba(255, 87, 34, 0.05);
+            transform: none;
           }
 
           .auth-link {
+            width: 100%;
             margin-top: 10px;
-            border-radius: 25px;
-            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            text-align: center;
           }
 
           .logo {

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Auth } from 'aws-amplify';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './common/LanguageSwitcher';
 
 function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -9,6 +12,8 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
     given_name: '',
     family_name: '',
     phone_number: '',
+    alias: '',
+    age: '',
     role: 'athlete'
   });
   const [error, setError] = useState('');
@@ -20,18 +25,18 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
 
     // Validate required fields
     if (!formData.given_name || !formData.family_name) {
-      setError('First name and last name are required');
+      setError(t('auth.signUp.errors.nameRequired'));
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.signUp.errors.passwordMismatch'));
       return;
     }
 
     // Validate phone number format
     if (formData.phone_number && !formData.phone_number.startsWith('+')) {
-      setError('Phone number must start with + and country code (e.g., +1234567890)');
+      setError(t('auth.signUp.errors.phoneFormat'));
       return;
     }
 
@@ -49,17 +54,27 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
         }
       };
 
-      // Add phone number only if provided
+      // Add optional fields if provided
       if (formData.phone_number) {
         signUpParams.attributes.phone_number = formData.phone_number;
+      }
+      
+      // Store alias and age in custom attributes for athletes
+      if (formData.role === 'athlete') {
+        if (formData.alias) {
+          signUpParams.attributes['custom:alias'] = formData.alias;
+        }
+        if (formData.age) {
+          signUpParams.attributes['custom:age'] = formData.age;
+        }
       }
 
       await Auth.signUp(signUpParams);
 
-      alert('Account created! Please check your email to verify your account, then sign in.');
+      alert(t('auth.signUp.success'));
       onSwitchToSignIn();
     } catch (err) {
-      setError(err.message || 'Error creating account');
+      setError(err.message || t('auth.signUp.errors.createFailed'));
     } finally {
       setLoading(false);
     }
@@ -68,14 +83,19 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
   return (
     <div className="custom-signup">
       <div className="signup-container">
-        <h2>Create Your CaliScore Account</h2>
-        <p className="subtitle">Join the calisthenics competition platform</p>
+        <div className="header-with-language">
+          <div>
+            <h2>{t('auth.signUp.title')}</h2>
+            <p className="subtitle">{t('auth.signUp.subtitle')}</p>
+          </div>
+          <LanguageSwitcher />
+        </div>
 
         {error && <div className="error-message">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>I am a *</label>
+            <label>{t('auth.signUp.role')} {t('auth.signUp.roleRequired')}</label>
             <div className="role-selector">
               <label className={`role-option ${formData.role === 'athlete' ? 'selected' : ''}`}>
                 <input
@@ -88,8 +108,8 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
                 <div className="role-content">
                   <span className="role-icon">🏃</span>
                   <div>
-                    <strong>Athlete</strong>
-                    <p>Compete in events and track your performance</p>
+                    <strong>{t('auth.signUp.athlete')}</strong>
+                    <p>{t('auth.signUp.athleteDescription')}</p>
                   </div>
                 </div>
               </label>
@@ -105,8 +125,8 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
                 <div className="role-content">
                   <span className="role-icon">📋</span>
                   <div>
-                    <strong>Organizer</strong>
-                    <p>Host and manage competitions</p>
+                    <strong>{t('auth.signUp.organizer')}</strong>
+                    <p>{t('auth.signUp.organizerDescription')}</p>
                   </div>
                 </div>
               </label>
@@ -115,7 +135,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
 
           <div className="form-row">
             <div className="form-group">
-              <label>First Name *</label>
+              <label>{t('auth.signUp.firstName')} {t('auth.signUp.required')}</label>
               <input
                 type="text"
                 value={formData.given_name}
@@ -125,7 +145,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
             </div>
 
             <div className="form-group">
-              <label>Last Name *</label>
+              <label>{t('auth.signUp.lastName')} {t('auth.signUp.required')}</label>
               <input
                 type="text"
                 value={formData.family_name}
@@ -136,7 +156,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
           </div>
 
           <div className="form-group">
-            <label>Email *</label>
+            <label>{t('auth.signUp.email')} {t('auth.signUp.required')}</label>
             <input
               type="email"
               value={formData.email}
@@ -146,18 +166,49 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
           </div>
 
           <div className="form-group">
-            <label>Phone Number (optional)</label>
+            <label>{t('auth.signUp.phoneOptional')}</label>
             <input
               type="tel"
               placeholder="+1234567890"
               value={formData.phone_number}
               onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
             />
-            <small>Include country code (e.g., +1 for US)</small>
+            <small>{t('auth.signUp.phoneHint')}</small>
           </div>
 
+          {formData.role === 'athlete' && (
+            <>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t('auth.signUp.aliasOptional')}</label>
+                  <input
+                    type="text"
+                    placeholder={t('auth.signUp.aliasPlaceholder')}
+                    value={formData.alias}
+                    onChange={(e) => setFormData({...formData, alias: e.target.value})}
+                    maxLength="50"
+                  />
+                  <small>{t('auth.signUp.aliasHint')}</small>
+                </div>
+
+                <div className="form-group">
+                  <label>{t('auth.signUp.ageOptional')}</label>
+                  <input
+                    type="number"
+                    placeholder={t('auth.signUp.agePlaceholder')}
+                    value={formData.age}
+                    onChange={(e) => setFormData({...formData, age: e.target.value})}
+                    min="1"
+                    max="120"
+                  />
+                  <small>{t('auth.signUp.ageHint')}</small>
+                </div>
+              </div>
+            </>
+          )}
+
           <div className="form-group">
-            <label>Password *</label>
+            <label>{t('auth.signUp.password')} {t('auth.signUp.required')}</label>
             <input
               type="password"
               value={formData.password}
@@ -165,11 +216,11 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
               required
               minLength={8}
             />
-            <small>Minimum 8 characters with uppercase, lowercase, and numbers</small>
+            <small>{t('auth.signUp.passwordHint')}</small>
           </div>
 
           <div className="form-group">
-            <label>Confirm Password *</label>
+            <label>{t('auth.signUp.confirmPassword')} {t('auth.signUp.required')}</label>
             <input
               type="password"
               value={formData.confirmPassword}
@@ -179,12 +230,12 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
           </div>
 
           <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? t('auth.signUp.creatingAccount') : t('auth.signUp.createAccount')}
           </button>
         </form>
 
         <p className="switch-auth">
-          Already have an account? <button onClick={onSwitchToSignIn}>Sign In</button>
+          {t('auth.signUp.alreadyHaveAccount')} <button onClick={onSwitchToSignIn}>{t('auth.signUp.signIn')}</button>
         </p>
       </div>
 
@@ -207,6 +258,14 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
           width: 100%;
         }
 
+        .header-with-language {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 20px;
+          gap: 20px;
+        }
+
         h2 {
           margin: 0 0 10px 0;
           color: #2d3748;
@@ -214,7 +273,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
         }
 
         .subtitle {
-          margin: 0 0 30px 0;
+          margin: 0 0 10px 0;
           color: #4a5568;
         }
 

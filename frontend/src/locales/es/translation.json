@@ -173,5 +173,65 @@
     "category": "Categoría",
     "email": "Correo Electrónico",
     "password": "Contraseña"
+  },
+  "auth": {
+    "signUp": {
+      "title": "Crea tu Cuenta en CaliScore",
+      "subtitle": "Únete a la plataforma de competencias de calistenia",
+      "role": "Soy un",
+      "roleRequired": "*",
+      "athlete": "Atleta",
+      "athleteDescription": "Compite en eventos y rastrea tu rendimiento",
+      "organizer": "Organizador",
+      "organizerDescription": "Organiza y gestiona competencias",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "email": "Correo Electrónico",
+      "phone": "Número de Teléfono",
+      "phoneOptional": "Número de Teléfono (opcional)",
+      "phoneHint": "Incluye código de país (ej., +1 para EE.UU.)",
+      "alias": "Alias/Apodo",
+      "aliasOptional": "Alias/Apodo (opcional)",
+      "aliasPlaceholder": "Tu nombre de competencia",
+      "aliasHint": "Cómo quieres aparecer en las competencias",
+      "age": "Edad",
+      "ageOptional": "Edad (opcional)",
+      "agePlaceholder": "Tu edad",
+      "ageHint": "Nos ayuda a sugerir categorías apropiadas",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "passwordHint": "Mínimo 8 caracteres con mayúsculas, minúsculas y números",
+      "createAccount": "Crear Cuenta",
+      "creatingAccount": "Creando Cuenta...",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar Sesión",
+      "required": "*",
+      "errors": {
+        "nameRequired": "El nombre y apellido son requeridos",
+        "passwordMismatch": "Las contraseñas no coinciden",
+        "phoneFormat": "El número de teléfono debe comenzar con + y código de país (ej., +1234567890)",
+        "createFailed": "Error al crear la cuenta"
+      },
+      "success": "¡Cuenta creada! Por favor revisa tu correo electrónico para verificar tu cuenta, luego inicia sesión."
+    },
+    "profileSetup": {
+      "title": "Bienvenido a Athleon - El lugar donde se forjan los campeones",
+      "subtitle": "Configuremos tu perfil para comenzar.",
+      "age": "Tu Edad",
+      "agePlaceholder": "Ingresa tu edad",
+      "alias": "Alias/Apodo",
+      "aliasPlaceholder": "Ingresa tu alias de competencia",
+      "aliasHint": "Cómo quieres aparecer en las competencias",
+      "ageHint": "Esto nos ayuda a sugerir categorías apropiadas",
+      "prefilled": "✓ Pre-llenado",
+      "selectCategory": "Selecciona una categoría para continuar",
+      "completeSetup": "Completar Configuración",
+      "errors": {
+        "categoryRequired": "Por favor selecciona una categoría para continuar.",
+        "ageInvalid": "Por favor ingresa una edad válida.",
+        "aliasRequired": "Por favor ingresa un alias/apodo.",
+        "saveFailed": "Error al guardar tu perfil. Por favor intenta de nuevo."
+      }
+    }
   }
 }

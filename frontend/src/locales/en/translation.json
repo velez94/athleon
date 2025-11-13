@@ -173,5 +173,65 @@
     "category": "Category",
     "email": "Email",
     "password": "Password"
+  },
+  "auth": {
+    "signUp": {
+      "title": "Create Your CaliScore Account",
+      "subtitle": "Join the calisthenics competition platform",
+      "role": "I am a",
+      "roleRequired": "*",
+      "athlete": "Athlete",
+      "athleteDescription": "Compete in events and track your performance",
+      "organizer": "Organizer",
+      "organizerDescription": "Host and manage competitions",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone Number",
+      "phoneOptional": "Phone Number (optional)",
+      "phoneHint": "Include country code (e.g., +1 for US)",
+      "alias": "Alias/Nickname",
+      "aliasOptional": "Alias/Nickname (optional)",
+      "aliasPlaceholder": "Your competition name",
+      "aliasHint": "How you want to appear in competitions",
+      "age": "Age",
+      "ageOptional": "Age (optional)",
+      "agePlaceholder": "Your age",
+      "ageHint": "Helps us suggest appropriate categories",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "passwordHint": "Minimum 8 characters with uppercase, lowercase, and numbers",
+      "createAccount": "Create Account",
+      "creatingAccount": "Creating Account...",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign In",
+      "required": "*",
+      "errors": {
+        "nameRequired": "First name and last name are required",
+        "passwordMismatch": "Passwords do not match",
+        "phoneFormat": "Phone number must start with + and country code (e.g., +1234567890)",
+        "createFailed": "Error creating account"
+      },
+      "success": "Account created! Please check your email to verify your account, then sign in."
+    },
+    "profileSetup": {
+      "title": "Welcome to Athleon - The place where champions are forged",
+      "subtitle": "Let's set up your profile to get started.",
+      "age": "Your Age",
+      "agePlaceholder": "Enter your age",
+      "alias": "Alias/Nickname",
+      "aliasPlaceholder": "Enter your competition alias",
+      "aliasHint": "How you want to appear in competitions",
+      "ageHint": "This helps us suggest appropriate categories",
+      "prefilled": "✓ Pre-filled",
+      "selectCategory": "Select a category to continue",
+      "completeSetup": "Complete Setup",
+      "errors": {
+        "categoryRequired": "Please select a category to continue.",
+        "ageInvalid": "Please enter a valid age.",
+        "aliasRequired": "Please enter an alias/nickname.",
+        "saveFailed": "Error saving your profile. Please try again."
+      }
+    }
   }
 }

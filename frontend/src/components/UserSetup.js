@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { API } from 'aws-amplify';
+import { useTranslation } from 'react-i18next';
 import CategorySelection from './CategorySelection';
 import AthleteProfile from './AthleteProfile';
 import AthleteEventDetails from './athlete/AthleteEventDetails';
+import LanguageSwitcher from './common/LanguageSwitcher';
 
 function UserSetup({ user, signOut }) {
+  const { t } = useTranslation();
   const [needsSetup, setNeedsSetup] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [age, setAge] = useState('');
@@ -26,6 +29,17 @@ function UserSetup({ user, signOut }) {
       
       if (userAthlete && userAthlete.categoryId) {
         setNeedsSetup(false);
+      } else {
+        // Pre-fill alias and age from sign-up if available
+        const userAlias = user?.attributes?.['custom:alias'];
+        const userAge = user?.attributes?.['custom:age'];
+        
+        if (userAlias) {
+          setAlias(userAlias);
+        }
+        if (userAge) {
+          setAge(userAge);
+        }
       }
     } catch (error) {
       console.error('Error checking user setup:', error);
@@ -40,15 +54,15 @@ function UserSetup({ user, signOut }) {
 
   const handleCompleteSetup = async () => {
     if (!selectedCategoryId) {
-      alert('Please select a category to continue.');
+      alert(t('auth.profileSetup.errors.categoryRequired'));
       return;
     }
     if (!age || age < 1 || age > 100) {
-      alert('Please enter a valid age.');
+      alert(t('auth.profileSetup.errors.ageInvalid'));
       return;
     }
     if (!alias.trim()) {
-      alert('Please enter an alias/nickname.');
+      alert(t('auth.profileSetup.errors.aliasRequired'));
       return;
     }
 
@@ -70,14 +84,14 @@ function UserSetup({ user, signOut }) {
       setNeedsSetup(false);
     } catch (error) {
       console.error('Error completing setup:', error);
-      alert('Error saving your profile. Please try again.');
+      alert(t('auth.profileSetup.errors.saveFailed'));
     }
   };
 
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
-        <h2>Loading...</h2>
+        <h2>{t('common.loading')}</h2>
       </div>
     );
   }
@@ -87,31 +101,36 @@ function UserSetup({ user, signOut }) {
       <div className="user-setup">
         <div className="setup-container">
           <div className="setup-header">
-            <h1>Welcome to Athleon - The place where champions are forged</h1>
-            <p>Let's set up your profile to get started.</p>
+            <div className="header-content">
+              <h1>{t('auth.profileSetup.title')}</h1>
+              <p>{t('auth.profileSetup.subtitle')}</p>
+            </div>
+            <LanguageSwitcher />
           </div>
           
           <div className="profile-form">
             <div className="form-group">
-              <label>Your Age</label>
+              <label>{t('auth.profileSetup.age')} {age && <span className="prefilled">{t('auth.profileSetup.prefilled')}</span>}</label>
               <input 
                 type="number" 
                 value={age} 
                 onChange={(e) => setAge(e.target.value)}
-                placeholder="Enter your age"
+                placeholder={t('auth.profileSetup.agePlaceholder')}
                 min="1" 
                 max="100"
               />
+              {!age && <small className="hint">{t('auth.profileSetup.ageHint')}</small>}
             </div>
             <div className="form-group">
-              <label>Alias/Nickname</label>
+              <label>{t('auth.profileSetup.alias')} {alias && <span className="prefilled">{t('auth.profileSetup.prefilled')}</span>}</label>
               <input 
                 type="text" 
                 value={alias} 
                 onChange={(e) => setAlias(e.target.value)}
-                placeholder="Enter your competition alias"
+                placeholder={t('auth.profileSetup.aliasPlaceholder')}
                 maxLength="50"
               />
+              {!alias && <small className="hint">{t('auth.profileSetup.aliasHint')}</small>}
             </div>
           </div>
           
@@ -126,7 +145,7 @@ function UserSetup({ user, signOut }) {
               disabled={!selectedCategoryId || !age || !alias.trim()}
               className="complete-setup-btn"
             >
-              Complete Setup
+              {t('auth.profileSetup.completeSetup')}
             </button>
           </div>
         </div>
@@ -145,9 +164,15 @@ function UserSetup({ user, signOut }) {
             width: 100%;
           }
           .setup-header {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             color: white;
             margin-bottom: 40px;
+            gap: 20px;
+          }
+          .header-content {
+            flex: 1;
           }
           .setup-header h1 {
             font-size: 2.5rem;
@@ -189,6 +214,18 @@ function UserSetup({ user, signOut }) {
             outline: none;
             border-color: #007bff;
             box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+          }
+          .prefilled {
+            color: #28a745;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 8px;
+          }
+          .hint {
+            display: block;
+            margin-top: 6px;
+            color: #6c757d;
+            font-size: 14px;
           }
           .setup-actions {
             text-align: center;

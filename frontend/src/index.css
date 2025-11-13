@@ -157,7 +157,7 @@ a:hover {
   min-height: 100vh;
 }
 
-.hero {
+.landing-page .hero {
   background: linear-gradient(135deg, #FF5722 0%, #B87333 100%);
   min-height: 100vh;
   color: white;
@@ -254,12 +254,15 @@ a:hover {
   }
   
   .nav-right {
+    position: fixed;
     top: 1rem;
     right: 4rem;
+    z-index: 1001;
   }
   
   .mobile-menu-toggle {
     display: flex;
+    z-index: 1001;
   }
   
   .nav-links {
@@ -286,7 +289,19 @@ a:hover {
 
 @media (max-width: 480px) {
   .nav-right {
-    right: 3rem;
+    position: fixed;
+    top: 0.75rem;
+    right: 3.5rem;
+  }
+  
+  .language-switcher {
+    transform: scale(0.9);
+  }
+  
+  .language-switcher .btn {
+    min-width: 32px;
+    padding: 6px 10px;
+    font-size: 12px;
   }
   
   .navbar {

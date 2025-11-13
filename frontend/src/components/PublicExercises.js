@@ -198,11 +198,12 @@ function PublicExercises() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 15px 5%;
+          padding: 16px 5%;
           background: linear-gradient(135deg, #FF5722 0%, #6B7C93 100%);
           position: sticky;
           top: 0;
           z-index: 100;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         .logo {
           display: flex;
@@ -225,35 +226,39 @@ function PublicExercises() {
           color: white;
           letter-spacing: -0.5px;
         }
+        .nav-right {
+          display: flex;
+          align-items: center;
+        }
         .nav-links {
           display: flex;
           gap: 15px;
           align-items: center;
         }
         .hero {
-          background: linear-gradient(135deg, #FF5722 0%, #6B7C93 100%);
-          color: white;
           text-align: center;
-          padding: 80px 20px;
+          padding: 40px 20px;
           margin-bottom: 40px;
         }
         .hero-header {
           display: flex;
-          justify-content: space-between;
+          justify-content: center;
           align-items: center;
           max-width: 1200px;
-          margin: 0 auto 20px auto;
+          margin: 0 auto 12px auto;
         }
         .hero h1 {
-          font-size: 48px;
+          font-size: 36px;
           font-weight: 700;
-          color: white;
+          background: linear-gradient(135deg, #FF5722 0%, #6B7C93 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
           margin: 0;
         }
         .hero p {
-          font-size: 20px;
+          font-size: 16px;
+          color: #6c757d;
           margin: 0;
-          opacity: 0.9;
         }
         .loading {
           text-align: center;
@@ -364,8 +369,21 @@ function PublicExercises() {
           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         @media (max-width: 768px) {
+          .navbar {
+            padding: 12px 4%;
+          }
+          .logo-image {
+            width: 36px;
+            height: 36px;
+          }
+          .logo-text {
+            font-size: 20px;
+          }
           .hero h1 {
-            font-size: 36px;
+            font-size: 32px;
+          }
+          .hero p {
+            font-size: 14px;
           }
           .hero-header {
             flex-direction: column;
@@ -373,11 +391,24 @@ function PublicExercises() {
           }
           .exercises-grid {
             grid-template-columns: 1fr;
+            padding: 0 20px;
           }
           .filter-section {
             flex-direction: column;
             align-items: flex-start;
             gap: 10px;
+          }
+        }
+        @media (max-width: 480px) {
+          .navbar {
+            padding: 10px 3%;
+          }
+          .logo-image {
+            width: 32px;
+            height: 32px;
+          }
+          .logo-text {
+            font-size: 18px;
           }
         }
       `}</style>

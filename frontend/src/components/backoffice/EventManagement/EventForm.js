@@ -40,6 +40,14 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
   // Load event data if editing
   useEffect(() => {
     if (event) {
+      // Normalize categories - handle both array of IDs and array of objects
+      let normalizedCategories = event.categories || [];
+      if (normalizedCategories.length > 0 && typeof normalizedCategories[0] === 'string') {
+        // Already array of IDs, keep as is
+      } else if (normalizedCategories.length > 0 && typeof normalizedCategories[0] === 'object') {
+        // Array of objects, keep as is (CategorySelector will handle it)
+      }
+      
       setFormData({
         name: event.name || '',
         startDate: event.startDate || '',
@@ -48,8 +56,8 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
         description: event.description || '',
         maxParticipants: event.maxParticipants || 100,
         registrationDeadline: event.registrationDeadline || '',
-        workouts: event.workouts || [],
-        categories: event.categories || [],
+        workouts: event.workouts || event.wods || [],
+        categories: normalizedCategories,
         imageUrl: event.imageUrl || '',
         published: event.published || false
       });

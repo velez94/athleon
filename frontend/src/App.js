@@ -1,18 +1,25 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Amplify, Auth } from 'aws-amplify';
 import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { OrganizationProvider } from './contexts/OrganizationContext';
-import BackofficeLayout from './components/BackofficeLayout';
-import UserSetup from './components/UserSetup';
-import LandingPage from './components/LandingPage';
-import PublicEvents from './components/PublicEvents';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { LoadingSpinner } from './components/common/Loading';
+import { queryClient } from './lib/queryClient';
 import './i18n'; // Initialize i18n
-import PublicWODs from './components/PublicWODs';
-import PublicExercises from './components/PublicExercises';
-import PublicEventDetail from './components/PublicEventDetail';
 import { canAccessBackoffice } from './utils/organizerRoles';
+
+// Lazy load components for code splitting
+const BackofficeLayout = lazy(() => import('./components/BackofficeLayout'));
+const UserSetup = lazy(() => import('./components/UserSetup'));
+const LandingPage = lazy(() => import('./components/LandingPage'));
+const PublicEvents = lazy(() => import('./components/PublicEvents'));
+const PublicWODs = lazy(() => import('./components/PublicWODs'));
+const PublicExercises = lazy(() => import('./components/PublicExercises'));
+const PublicEventDetail = lazy(() => import('./components/PublicEventDetail'));
 
 // Configuration from environment variables
 Amplify.configure({
@@ -50,33 +57,17 @@ Amplify.configure({
   }
 });
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <h2>Something went wrong.</h2>
-          <button onClick={() => window.location.reload()}>Reload Page</button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
+// Loading fallback component
+const PageLoader = () => (
+  <div style={{ 
+    minHeight: '100vh', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  }}>
+    <LoadingSpinner size="lg" message="Loading..." />
+  </div>
+);
 
 function AuthPage() {
   return (
@@ -235,20 +226,25 @@ function AuthPageWrapper() {
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/events" element={<PublicEvents />} />
-          <Route path="/wods" element={<PublicWODs />} />
-          <Route path="/exercises" element={<PublicExercises />} />
-          <Route path="/events/:eventId" element={<PublicEventDetail />} />
-          <Route path="/login" element={<AuthPageWrapper />} />
-          <Route path="/athlete/events/:eventId" element={<AuthPage />} />
-          <Route path="/athlete/:athleteId" element={<AuthPage />} />
-          <Route path="/backoffice/*" element={<AuthPage />} />
-          <Route path="/*" element={<AuthPage />} />
-        </Routes>
-      </Router>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/events" element={<PublicEvents />} />
+              <Route path="/wods" element={<PublicWODs />} />
+              <Route path="/exercises" element={<PublicExercises />} />
+              <Route path="/events/:eventId" element={<PublicEventDetail />} />
+              <Route path="/login" element={<AuthPageWrapper />} />
+              <Route path="/athlete/events/:eventId" element={<AuthPage />} />
+              <Route path="/athlete/:athleteId" element={<AuthPage />} />
+              <Route path="/backoffice/*" element={<AuthPage />} />
+              <Route path="/*" element={<AuthPage />} />
+            </Routes>
+          </Suspense>
+        </Router>
+        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

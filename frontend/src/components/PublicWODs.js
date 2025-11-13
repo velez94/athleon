@@ -183,11 +183,12 @@ function PublicWODs() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 15px 5%;
+          padding: 16px 5%;
           background: linear-gradient(135deg, #FF5722 0%, #6B7C93 100%);
           position: sticky;
           top: 0;
           z-index: 100;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         .logo {
           display: flex;
@@ -210,6 +211,10 @@ function PublicWODs() {
           color: white;
           letter-spacing: -0.5px;
         }
+        .nav-right {
+          display: flex;
+          align-items: center;
+        }
         .nav-links {
           display: flex;
           gap: 15px;
@@ -217,19 +222,21 @@ function PublicWODs() {
         }
         .hero {
           text-align: center;
-          margin-bottom: 50px;
+          padding: 40px 20px;
+          margin-bottom: 40px;
         }
         .hero h1 {
-          font-size: 48px;
+          font-size: 36px;
           font-weight: 700;
           background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          margin: 0 0 15px 0;
+          margin: 0 0 12px 0;
         }
         .hero p {
-          font-size: 20px;
+          font-size: 16px;
           color: #6c757d;
+          margin: 0;
         }
         .no-wods {
           text-align: center;
@@ -322,6 +329,40 @@ function PublicWODs() {
         .time-badge {
           background: linear-gradient(135deg, #ff8a50 0%, #ff6b35 100%);
           color: white;
+        }
+        @media (max-width: 768px) {
+          .navbar {
+            padding: 12px 4%;
+          }
+          .logo-image {
+            width: 36px;
+            height: 36px;
+          }
+          .logo-text {
+            font-size: 20px;
+          }
+          .hero h1 {
+            font-size: 32px;
+          }
+          .hero p {
+            font-size: 14px;
+          }
+          .wods-grid {
+            grid-template-columns: 1fr;
+            padding: 0 20px;
+          }
+        }
+        @media (max-width: 480px) {
+          .navbar {
+            padding: 10px 3%;
+          }
+          .logo-image {
+            width: 32px;
+            height: 32px;
+          }
+          .logo-text {
+            font-size: 18px;
+          }
         }
       `}</style>
     </div>
