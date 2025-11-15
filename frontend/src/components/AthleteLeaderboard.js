@@ -550,7 +550,7 @@ function AthleteLeaderboard({ userProfile }) {
           align-items: center;
         }
         .wod-position {
-          background: #667eea;
+          background: #FF5722;
           color: white;
           padding: 4px 10px;
           border-radius: 12px;

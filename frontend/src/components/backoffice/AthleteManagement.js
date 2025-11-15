@@ -134,7 +134,12 @@ function AthleteManagement() {
           console.log(`Fetching categories for event: ${event.eventId}`);
           const eventCategories = await API.get('CalisthenicsAPI', `/categories?eventId=${event.eventId}`);
           console.log(`Categories found for ${event.eventId}:`, eventCategories?.length || 0, eventCategories);
-          allCategories.push(...(eventCategories || []));
+          
+          if (eventCategories && eventCategories.length > 0) {
+            allCategories.push(...eventCategories);
+          } else {
+            console.warn(`No categories found for event ${event.eventId}, will use global categories as fallback`);
+          }
         } catch (error) {
           // Skip events that return 403 (deleted/unauthorized) or 404 (not found)
           if (error.response?.status === 403 || error.response?.status === 404) {
@@ -145,17 +150,16 @@ function AthleteManagement() {
         }
       }
       
-      // Deduplicate categories by categoryId
-      const uniqueCategories = allCategories.reduce((acc, category) => {
-        if (!acc.find(c => c.categoryId === category.categoryId)) {
-          acc.push(category);
-        }
+      // Don't deduplicate - keep all categories with their eventId associations
+      // This is important because the same category can exist for multiple events
+      console.log('Total categories loaded:', allCategories.length);
+      console.log('Categories by event:', allCategories.reduce((acc, cat) => {
+        if (!acc[cat.eventId]) acc[cat.eventId] = [];
+        acc[cat.eventId].push(cat.name);
         return acc;
-      }, []);
+      }, {}));
       
-      console.log('Total categories loaded:', uniqueCategories.length, uniqueCategories);
-      console.log('Category IDs loaded:', uniqueCategories.map(c => c.categoryId));
-      setCategories(uniqueCategories);
+      setCategories(allCategories);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setCategories([]);
@@ -587,11 +591,26 @@ function AthleteManagement() {
                                 }}
                               >
                                 <option value="">Select Category</option>
-                                {categories.filter(cat => cat.eventId === event.eventId).map(category => (
-                                  <option key={category.categoryId} value={category.categoryId}>
-                                    {category.name}
-                                  </option>
-                                ))}
+                                {(() => {
+                                  const eventCategories = categories.filter(cat => cat.eventId === event.eventId);
+                                  console.log('Categories for event', event.eventId, ':', eventCategories);
+                                  console.log('All categories:', categories);
+                                  
+                                  // If no event-specific categories, show global categories
+                                  const categoriesToShow = eventCategories.length > 0 
+                                    ? eventCategories 
+                                    : categories.filter(cat => cat.eventId === 'global');
+                                  
+                                  if (categoriesToShow.length === 0) {
+                                    console.warn('No categories available for event', event.eventId);
+                                  }
+                                  
+                                  return categoriesToShow.map(category => (
+                                    <option key={category.categoryId} value={category.categoryId}>
+                                      {category.name}
+                                    </option>
+                                  ));
+                                })()}
                               </select>
                             </div>
                           ))}

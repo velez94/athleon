@@ -506,9 +506,9 @@ function ScoreEntry({ user }) {
                       padding: '12px',
                       borderRadius: '6px',
                       marginBottom: '15px',
-                      borderLeft: '4px solid #667eea'
+                      borderLeft: '4px solid #FF5722'
                     }}>
-                      <h4 style={{margin: '0 0 8px 0', color: '#667eea'}}>📋 {selectedWod.name}</h4>
+                      <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                       <div style={{fontSize: '13px', color: '#666'}}>
                         <div><strong>Format:</strong> {selectedWod.format}</div>
                         {selectedWod.timeLimit && <div><strong>Time Cap:</strong> ⏱️ {selectedWod.timeLimit}</div>}
@@ -617,7 +617,7 @@ function ScoreEntry({ user }) {
                         <label style={{fontSize: '12px', color: '#666', display: 'block', marginBottom: '5px'}}>Calculated Score</label>
                         <div style={{
                           padding: '8px',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                           color: 'white',
                           borderRadius: '4px',
                           fontSize: '20px',
@@ -738,9 +738,9 @@ function ScoreEntry({ user }) {
                               padding: '12px',
                               borderRadius: '6px',
                               marginBottom: '15px',
-                              borderLeft: '4px solid #667eea'
+                              borderLeft: '4px solid #FF5722'
                             }}>
-                              <h4 style={{margin: '0 0 8px 0', color: '#667eea'}}>📋 {selectedWod.name}</h4>
+                              <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                               <div style={{fontSize: '13px', color: '#666'}}>
                                 <div><strong>Format:</strong> {selectedWod.format}</div>
                                 {selectedWod.timeLimit && <div><strong>Time Cap:</strong> ⏱️ {selectedWod.timeLimit}</div>}
@@ -846,7 +846,7 @@ function ScoreEntry({ user }) {
                                 <label style={{fontSize: '12px', color: '#666', display: 'block', marginBottom: '5px'}}>Calculated Score</label>
                                 <div style={{
                                   padding: '8px',
-                                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                  background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                                   color: 'white',
                                   borderRadius: '4px',
                                   fontSize: '20px',
@@ -941,7 +941,7 @@ function ScoreEntry({ user }) {
                       const athlete = athletes.find(a => a.athleteId === score.athleteId);
                       return (
                         <div key={score.scoreId} className="table-row">
-                          <span style={{fontWeight: 'bold', color: index < 3 ? '#667eea' : '#666'}}>#{index + 1}</span>
+                          <span style={{fontWeight: 'bold', color: index < 3 ? '#FF5722' : '#666'}}>#{index + 1}</span>
                           <span>
                             {athlete ? `${athlete.firstName} ${athlete.lastName}` : score.athleteId}
                             {athlete?.alias && ` (${athlete.alias})`}
@@ -1002,7 +1002,7 @@ function ScoreEntry({ user }) {
 
         .search-input:focus {
           outline: none;
-          border-color: #667eea;
+          border-color: #FF5722;
         }
 
         .events-grid {
@@ -1024,8 +1024,8 @@ function ScoreEntry({ user }) {
 
         .event-card:hover {
           transform: translateY(-4px);
-          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-          border-color: #667eea;
+          box-shadow: 0 8px 25px rgba(255, 87, 34, 0.15);
+          border-color: #FF5722;
         }
 
         .event-card h3 {
@@ -1130,12 +1130,12 @@ function ScoreEntry({ user }) {
         }
 
         .mode-btn:hover {
-          border-color: #667eea;
-          background: #f8f9ff;
+          border-color: #FF5722;
+          background: #fff5f2;
         }
 
         .mode-btn.active {
-          border-color: #667eea;
+          border-color: #FF5722;
           background: linear-gradient(135deg, #ed7845, #f09035)
           color: white;
         }
@@ -1185,7 +1185,7 @@ function ScoreEntry({ user }) {
         .form-group input:focus,
         .form-group select:focus {
           outline: none;
-          border-color: #667eea;
+          border-color: #FF5722;
         }
 
         .form-group input:disabled,
@@ -1307,7 +1307,7 @@ function ScoreEntry({ user }) {
 
         .score-value {
           font-weight: 600;
-          color: #667eea;
+          color: #FF5722;
         }
 
         .score-time {

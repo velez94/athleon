@@ -16,6 +16,7 @@ export interface SchedulingStackProps  {
 
 export class SchedulingStack extends Construct {
   public readonly schedulerLambda: lambda.Function;
+  public readonly publicSchedulesLambda: lambda.Function;
   public readonly schedulesTable: dynamodb.Table;
   public readonly heatsTable: dynamodb.Table;
   public readonly classificationFiltersTable: dynamodb.Table;
@@ -81,13 +82,14 @@ export class SchedulingStack extends Construct {
     this.schedulesTable.grantReadWriteData(generateScheduleLambda);
 
     // Public Schedules Lambda
-    const publicSchedulesLambda = createBundledLambda(this, 'PublicSchedulesLambda', 'scheduling', {
+    this.publicSchedulesLambda = createBundledLambda(this, 'PublicSchedulesLambda', 'scheduling', {
+      handler: 'public.handler',
       environment: {
         SCHEDULES_TABLE: this.schedulesTable.tableName,
       },
     });
 
-    this.schedulesTable.grantReadData(publicSchedulesLambda);
+    this.schedulesTable.grantReadData(this.publicSchedulesLambda);
 
     // Outputs
   }

@@ -64,7 +64,7 @@ function ScoreBreakdown({ score }) {
           </div>
         )}
         
-        <div style={{padding: '10px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '4px', textAlign: 'center', color: 'white'}}>
+        <div style={{padding: '10px', background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)', borderRadius: '4px', textAlign: 'center', color: 'white'}}>
           <div style={{fontSize: '12px'}}>Final Score</div>
           <div style={{fontSize: '24px', fontWeight: 'bold'}}>{score.score}</div>
         </div>

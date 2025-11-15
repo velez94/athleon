@@ -16,5 +16,6 @@ export declare class CompetitionsStack extends Construct {
     readonly eventDaysTable: dynamodb.Table;
     readonly competitionsEventBus: events.EventBus;
     readonly competitionsLambda: lambda.Function;
+    readonly competitionsDddLambda: lambda.Function;
     constructor(scope: Construct, id: string, props: CompetitionsStackProps);
 }

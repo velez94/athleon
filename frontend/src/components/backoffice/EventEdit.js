@@ -58,6 +58,7 @@ function EventEdit() {
         location: eventData.location || '',
         status: eventData.status || 'upcoming',
         published: eventData.published || false,
+        publicLeaderboard: eventData.publicLeaderboard || false,
         maxParticipants: eventData.maxParticipants || null,
         registrationDeadline: formatDateForInput(eventData.registrationDeadline),
         workouts: eventWods,
@@ -316,6 +317,29 @@ function EventEdit() {
           </div>
           <small className="field-hint">
             {formData.published ? 'Athletes can register and view this event' : 'Event is hidden from public view'}
+          </small>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">
+            <span className="label-icon">📊</span>
+            Public Leaderboard
+          </label>
+          <div className="toggle-container">
+            <input
+              type="checkbox"
+              checked={formData.publicLeaderboard}
+              onChange={(e) => setFormData({ ...formData, publicLeaderboard: e.target.checked })}
+              className="toggle-input"
+              id="leaderboard-toggle-edit"
+            />
+            <label htmlFor="leaderboard-toggle-edit" className="toggle-slider"></label>
+          </div>
+          <div className="status-text">
+            {formData.publicLeaderboard ? 'Leaderboard is public (visible to everyone)' : 'Leaderboard is private (sign-in required)'}
+          </div>
+          <small className="field-hint">
+            {formData.publicLeaderboard ? 'Anyone can view scores without signing in' : 'Only authenticated users can view scores'}
           </small>
         </div>
 
@@ -843,7 +867,7 @@ function EventEdit() {
           background: #f8f9fa;
           padding: 16px;
           border-radius: 8px;
-          border-left: 4px solid #667eea;
+          border-left: 4px solid #FF5722;
         }
         
         .wod-info-note h4 {
@@ -884,13 +908,13 @@ function EventEdit() {
         }
         
         .max-score-display {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
           padding: 16px;
           border-radius: 8px;
           text-align: center;
           margin: 16px 0;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+          box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
         }
         
         .max-score-label {

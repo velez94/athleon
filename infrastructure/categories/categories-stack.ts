@@ -19,6 +19,7 @@ export interface CategoriesStackProps  {
 
 export class CategoriesStack extends Construct {
   public readonly categoriesLambda: lambda.Function;
+  public readonly categoriesPublicLambda: lambda.Function;
   public readonly categoriesTable: dynamodb.Table;
   public readonly categoriesEventBus: events.EventBus;
 
@@ -51,12 +52,23 @@ export class CategoriesStack extends Construct {
       },
     });
 
+    // Public Categories Lambda (no auth, CORS-friendly)
+    this.categoriesPublicLambda = createBundledLambda(this, 'CategoriesPublicLambda', 'categories', {
+      handler: 'public.handler',
+      environment: {
+        CATEGORIES_TABLE: this.categoriesTable.tableName,
+      },
+    });
+
     // Grant permissions
     this.categoriesTable.grantReadWriteData(this.categoriesLambda);
     props.organizationEventsTable.grantReadData(this.categoriesLambda);
     props.organizationMembersTable.grantReadData(this.categoriesLambda);
     this.categoriesEventBus.grantPutEventsTo(this.categoriesLambda);
     props.eventBus.grantPutEventsTo(this.categoriesLambda);
+
+    // Grant read-only to public Lambda
+    this.categoriesTable.grantReadData(this.categoriesPublicLambda);
 
     // Outputs
   }

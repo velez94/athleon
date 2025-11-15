@@ -101,7 +101,7 @@ h1 {
 .format-badge,
 .gender-badge,
 .status-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
   color: white;
   padding: 6px 14px;
   border-radius: 20px;
@@ -153,7 +153,7 @@ h1 {
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -164,12 +164,12 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102,126,234,0.4);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -201,8 +201,8 @@ h1 {
 
 .btn-outline {
   background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: #FF5722;
+  border: 2px solid #FF5722;
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -212,7 +212,7 @@ h1 {
 }
 
 .btn-outline:hover {
-  background: #667eea;
+  background: #FF5722;
   color: white;
 }
 
@@ -360,7 +360,7 @@ table {
 th {
   padding: 16px;
   text-align: left;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
   color: white;
   font-weight: 600;
   font-size: 13px;
@@ -656,7 +656,7 @@ tbody tr:last-child td {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
   padding: 12px 16px;
   border-radius: 8px;
 }
@@ -693,13 +693,13 @@ tbody tr:last-child td {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
   transform: scaleX(0);
   transition: transform 0.3s;
 }
 
 .session-card:hover {
-  border-color: #667eea;
+  border-color: #FF5722;
   box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   transform: translateY(-4px);
 }
@@ -712,7 +712,7 @@ tbody tr:last-child td {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
   padding: 14px 16px;
   margin: 0;
   border-radius: 10px 10px 0 0;

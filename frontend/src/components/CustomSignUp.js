@@ -245,7 +245,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           padding: 20px;
         }
 
@@ -316,7 +316,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
 
         input:focus {
           outline: none;
-          border-color: #667eea;
+          border-color: #FF5722;
         }
 
         small {
@@ -341,13 +341,13 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
         }
 
         .role-option:hover {
-          border-color: #667eea;
+          border-color: #FF5722;
           background: #f7fafc;
         }
 
         .role-option.selected {
-          border-color: #667eea;
-          background: #eef2ff;
+          border-color: #FF5722;
+          background: #ffe8e0;
         }
 
         .role-option input[type="radio"] {
@@ -379,7 +379,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
 
         .btn-submit {
           width: 100%;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
           border: none;
           padding: 14px;
@@ -408,7 +408,7 @@ function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
         .switch-auth button {
           background: none;
           border: none;
-          color: #667eea;
+          color: #FF5722;
           font-weight: 600;
           cursor: pointer;
           text-decoration: underline;

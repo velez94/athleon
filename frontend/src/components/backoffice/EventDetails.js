@@ -3,6 +3,7 @@ import { API } from 'aws-amplify';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import CompetitionScheduler from '../CompetitionScheduler';
 import ScoringSystemManager from './ScoringSystemManager';
+import LoadingSpinner from '../common/Loading/LoadingSpinner';
 
 function EventDetails() {
   const { eventId, scheduleId } = useParams();
@@ -405,12 +406,7 @@ function EventDetails() {
     }
   };
 
-  if (loading) return (
-    <div className="loading-container">
-      <div className="loading-spinner"></div>
-      <p>Loading event details...</p>
-    </div>
-  );
+  if (loading) return <LoadingSpinner size="lg" message="Loading event details..." variant="spinner" />;
   if (!event) return <div className="error-message">Event not found</div>;
 
   return (
@@ -704,7 +700,7 @@ function EventDetails() {
                       {scoreData && (
                         <div style={{
                           padding: '10px 12px',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                           color: 'white',
                           borderRadius: '6px',
                           marginBottom: '10px',
@@ -854,35 +850,6 @@ function EventDetails() {
           max-width: 1400px;
           margin: 0 auto;
         }
-        .loading-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 400px;
-          text-align: center;
-        }
-        
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid #667eea;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        .loading-container p {
-          color: #666;
-          font-size: 16px;
-          margin: 0;
-        }
         
         .error-message {
           text-align: center;
@@ -925,7 +892,7 @@ function EventDetails() {
           margin: 0 0 10px 0;
           font-size: 42px;
           font-weight: 700;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -1014,7 +981,7 @@ function EventDetails() {
         .badge.published { background: #d4edda; color: #155724; }
         .badge.draft { background: #fff3cd; color: #856404; }
         .btn-edit {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
           border: none;
           padding: 12px 24px;
@@ -1067,7 +1034,7 @@ function EventDetails() {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
           padding: 12px 28px;
           border-radius: 8px;
@@ -1114,7 +1081,7 @@ function EventDetails() {
           align-items: center;
           padding: 20px 24px;
           border-bottom: 2px solid #f0f0f0;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           border-radius: 12px 12px 0 0;
         }
         .card-header h3 {
@@ -1163,7 +1130,7 @@ function EventDetails() {
         
         .total-quota {
           font-weight: 700;
-          color: #667eea;
+          color: #FF5722;
         }
         
         .quota-separator {
@@ -1196,7 +1163,7 @@ function EventDetails() {
           padding: 8px 12px;
           background: #f8f9fa;
           border-radius: 6px;
-          border-left: 3px solid #667eea;
+          border-left: 3px solid #FF5722;
         }
         
         .category-name {
@@ -1213,7 +1180,7 @@ function EventDetails() {
         
         .registered-count {
           font-weight: 700;
-          color: #667eea;
+          color: #FF5722;
         }
         
         .max-quota {
@@ -1258,9 +1225,9 @@ function EventDetails() {
           transition: all 0.3s;
         }
         .wod-card:hover {
-          border-color: #667eea;
+          border-color: #FF5722;
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+          box-shadow: 0 4px 12px rgba(255, 87, 34, 0.2);
         }
         .wod-header {
           display: flex;
@@ -1274,7 +1241,7 @@ function EventDetails() {
           font-size: 18px;
         }
         .wod-format {
-          background: #667eea;
+          background: #FF5722;
           color: white;
           padding: 4px 12px;
           border-radius: 6px;
@@ -1302,7 +1269,7 @@ function EventDetails() {
         }
         .movement .reps {
           font-weight: 700;
-          color: #667eea;
+          color: #FF5722;
           min-width: 40px;
         }
         .movement .exercise {
@@ -1401,21 +1368,23 @@ function EventDetails() {
         }
         
         .category-group {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: white;
           border-radius: 8px;
-          padding: 15px;
-          border: 1px solid #667eea;
+          padding: 0;
+          border: 1px solid #e0e0e0;
           width: 100%;
           box-sizing: border-box;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
         .category-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 12px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+          margin-bottom: 0;
+          padding: 12px 15px;
+          background: #6B7C93;
+          border-radius: 8px 8px 0 0;
           flex-wrap: wrap;
           gap: 8px;
         }
@@ -1445,6 +1414,7 @@ function EventDetails() {
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
           gap: 12px;
           width: 100%;
+          padding: 15px;
         }
         
         @media (max-width: 768px) {
@@ -1521,8 +1491,8 @@ function EventDetails() {
         }
         
         .athlete-alias {
-          background: #e8f0fe;
-          color: #667eea;
+          background: #ffe8e0;
+          color: #FF5722;
           padding: 1px 6px;
           border-radius: 8px;
           font-size: 11px;
@@ -1594,7 +1564,7 @@ function EventDetails() {
           border-radius: 4px;
         }
         .athletes-list::-webkit-scrollbar-thumb {
-          background: #667eea;
+          background: #FF5722;
           border-radius: 4px;
         }
         .athletes-list::-webkit-scrollbar-thumb:hover {
@@ -1607,7 +1577,7 @@ function EventDetails() {
           padding: 12px 16px;
           background: #f8f9fa;
           border-radius: 8px;
-          border-left: 4px solid #667eea;
+          border-left: 4px solid #FF5722;
         }
         .athlete-info {
           display: flex;
@@ -1746,9 +1716,10 @@ function EventDetails() {
         
         .category-section {
           margin: 20px;
-          border: 1px solid #e9ecef;
+          border: 1px solid #e0e0e0;
           border-radius: 8px;
-          background: #f8f9fa;
+          background: white;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
         .category-header {
@@ -1756,7 +1727,7 @@ function EventDetails() {
           justify-content: space-between;
           align-items: center;
           padding: 15px 20px;
-          background: linear-gradient(135deg, #28a745, #1e7e34);
+          background: #6B7C93;
           color: white;
           border-radius: 8px 8px 0 0;
         }
@@ -1946,9 +1917,9 @@ function EventDetails() {
         }
         .day-title {
           margin: 0 0 20px 0;
-          color: #667eea;
+          color: #FF5722;
           font-size: 20px;
-          border-bottom: 2px solid #667eea;
+          border-bottom: 2px solid #FF5722;
           padding-bottom: 10px;
         }
         .category-title {
@@ -1966,7 +1937,7 @@ function EventDetails() {
           font-weight: 600;
         }
         .athlete-number {
-          background: #667eea;
+          background: #FF5722;
           color: white;
           width: 24px;
           height: 24px;

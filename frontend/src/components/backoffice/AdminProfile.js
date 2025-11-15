@@ -64,7 +64,7 @@ function AdminProfile({ user, signOut }) {
           display: flex;
           align-items: center;
           gap: 20px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
           padding: 30px;
           border-radius: 12px;

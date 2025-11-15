@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API, Auth } from 'aws-amplify';
 import './AthleteScheduleViewer.css';
+import LoadingSpinner from './common/Loading/LoadingSpinner';
 
 const AthleteScheduleViewer = ({ eventId }) => {
   const [schedules, setSchedules] = useState([]);
@@ -75,12 +76,7 @@ const AthleteScheduleViewer = ({ eventId }) => {
   };
 
   if (loading) {
-    return (
-      <div className="schedule-viewer-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading schedules...</p>
-      </div>
-    );
+    return <LoadingSpinner size="lg" message="Loading schedules..." variant="dots" />;
   }
 
   if (!schedules.length) {

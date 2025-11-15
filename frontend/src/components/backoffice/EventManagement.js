@@ -174,7 +174,8 @@ function EventManagement() {
       registrationDeadline: event.registrationDeadline || '',
       workouts: eventWods || [],
       imageUrl: event.imageUrl || '',
-      published: event.published || false
+      published: event.published || false,
+      publicLeaderboard: event.publicLeaderboard || false
     });
     setShowEditPage(true);
   };

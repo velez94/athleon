@@ -418,7 +418,7 @@ function WODManagement() {
           onClick={handleCreate} 
           style={{
             padding: '12px 24px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -471,7 +471,7 @@ function WODManagement() {
             {scoreData && (
               <div style={{
                 padding: '10px 12px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                 color: 'white',
                 borderRadius: '6px',
                 marginBottom: '10px',
@@ -654,7 +654,7 @@ function WODManagement() {
               {maxScore && (
                 <div style={{
                   padding: '15px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                   color: 'white',
                   borderRadius: '8px',
                   marginBottom: '15px'

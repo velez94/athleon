@@ -24,7 +24,8 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
     workouts: [],
     categories: [],
     imageUrl: '',
-    published: false
+    published: false,
+    publicLeaderboard: false
   });
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -59,7 +60,8 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
         workouts: event.workouts || event.wods || [],
         categories: normalizedCategories,
         imageUrl: event.imageUrl || '',
-        published: event.published || false
+        published: event.published || false,
+        publicLeaderboard: event.publicLeaderboard || false
       });
     }
   }, [event]);
@@ -350,6 +352,20 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
             Published events are visible to athletes and allow registrations
           </small>
         </div>
+        
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={formData.publicLeaderboard}
+              onChange={(e) => handleChange('publicLeaderboard', e.target.checked)}
+            />
+            <span>Public leaderboard (visible to everyone)</span>
+          </label>
+          <small className="field-hint">
+            When enabled, anyone can view the leaderboard without signing in. When disabled, only authenticated users can see scores.
+          </small>
+        </div>
       </section>
 
       {/* Form Actions */}
@@ -504,13 +520,13 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
         }
         
         .btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
         }
         
         .btn-primary:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+          box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
         }
         
         .btn-primary:disabled {

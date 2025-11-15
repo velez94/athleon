@@ -138,12 +138,12 @@ class ErrorBoundary extends React.Component {
               transition: all 0.2s;
             }
             .btn-primary {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
               color: white;
             }
             .btn-primary:hover {
               transform: translateY(-2px);
-              box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+              box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
             }
             .btn-secondary {
               background: #6c757d;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
+import LoadingSpinner from './common/Loading/LoadingSpinner';
 import EventManagement from './backoffice/EventManagement';
 import EventDetails from './backoffice/EventDetails';
 import EventEdit from './backoffice/EventEdit';
@@ -20,18 +21,25 @@ import './BackofficeLayout.css';
 
 function BackofficeLayout({ user, signOut }) {
   const location = useLocation();
-  const [sidebarVisible, setSidebarVisible] = useState(true);
   const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 767);
+  // Initialize sidebar state based on screen size
+  const [sidebarVisible, setSidebarVisible] = useState(window.innerWidth > 767);
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 767;
+      const wasMobile = isMobile;
       setIsMobile(mobile);
-      // Auto-hide sidebar on mobile by default
-      if (mobile && sidebarVisible) {
+      
+      // Auto-hide sidebar when switching to mobile
+      if (mobile && !wasMobile) {
         setSidebarVisible(false);
+      }
+      // Auto-show sidebar when switching to desktop
+      if (!mobile && wasMobile) {
+        setSidebarVisible(true);
       }
     };
     
@@ -40,31 +48,18 @@ function BackofficeLayout({ user, signOut }) {
     // Prevent flash of unstyled content
     const timer = setTimeout(() => setIsLoading(false), 100);
     
-    // Set initial mobile state
-    handleResize();
-    
     return () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(timer);
     };
-  }, []);
+  }, [isMobile]);
   
   const organizerRole = getOrganizerRole(user);
   const roleLabel = ROLE_LABELS[organizerRole] || 'Organizer';
   
   // Show loading screen to prevent flash
   if (isLoading) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        background: '#ecf0f1'
-      }}>
-        <div>Loading...</div>
-      </div>
-    );
+    return <LoadingSpinner size="lg" message="Loading backoffice..." variant="spinner" fullScreen />;
   }
   
   const isActive = (path) => location.pathname === path;

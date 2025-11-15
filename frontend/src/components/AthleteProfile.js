@@ -1928,7 +1928,7 @@ function AthleteProfile({ user, signOut }) {
         .sign-in-notice {
           margin-top: 30px;
           padding: 25px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           border-radius: 12px;
           text-align: center;
           color: white;
@@ -1943,7 +1943,7 @@ function AthleteProfile({ user, signOut }) {
         }
         .signin-btn {
           background: white;
-          color: #667eea;
+          color: #FF5722;
           border: none;
           padding: 12px 24px;
           border-radius: 8px;

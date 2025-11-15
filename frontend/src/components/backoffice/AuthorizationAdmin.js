@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API } from 'aws-amplify';
+import LoadingSpinner from '../common/Loading/LoadingSpinner';
 
 const AuthorizationAdmin = () => {
   const [roles, setRoles] = useState([]);
@@ -173,7 +174,7 @@ const AuthorizationAdmin = () => {
   const availableActions = ['create', 'read', 'update', 'delete', '*'];
   const availableResources = ['organizations', 'events', 'wods', 'categories', 'athletes', 'scores', 'system'];
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading) return <LoadingSpinner size="md" message="Loading authorization settings..." variant="spinner" />;
 
   return (
     <div className="admin-container">

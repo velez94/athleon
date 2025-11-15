@@ -1,8 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as appconfig from 'aws-cdk-lib/aws-appconfig';
 import { Construct } from 'constructs';
 import { SharedStack } from './shared/shared-stack';
 import { NetworkStack } from './shared/network-stack';
+import { AppConfigStack } from './shared/appconfig-stack';
 import { EventRouting } from './shared/event-routing';
 import { AnalyticsStack } from './analytics/analytics-stack';
 import { OrganizationsStack } from './organizations/organizations-stack';
@@ -32,6 +34,36 @@ export class AthleonStack extends cdk.Stack {
       config: props.config 
     });
 
+    // 1.5. AppConfig for Feature Flags
+    const appConfigApplication = new appconfig.Application(this, 'AthleonApp', {
+      applicationName: `athleon-${props.stage}`,
+      description: `Athleon feature flags for ${props.stage}`,
+    });
+
+    const appConfigEnvironment = new appconfig.Environment(this, 'AppConfigEnvironment', {
+      application: appConfigApplication,
+      environmentName: props.stage,
+      description: `${props.stage} environment`,
+    });
+
+    const deploymentStrategy = new appconfig.CfnDeploymentStrategy(this, 'DeploymentStrategy', {
+      name: `athleon-${props.stage}-strategy`,
+      description: 'Gradual deployment with monitoring',
+      deploymentDurationInMinutes: props.stage === 'production' ? 10 : 2,
+      finalBakeTimeInMinutes: props.stage === 'production' ? 5 : 1,
+      growthFactor: 50,
+      growthType: 'LINEAR',
+      replicateTo: 'NONE',
+    });
+
+    const configProfile = new appconfig.CfnConfigurationProfile(this, 'FeatureFlags', {
+      applicationId: appConfigApplication.applicationId,
+      name: 'feature-flags',
+      description: 'Feature flags configuration',
+      locationUri: 'hosted',
+      type: 'AWS.AppConfig.FeatureFlags',
+    });
+
     // 7. Frontend Stack (create first to get certificate)
     const frontendStack = new FrontendStack(this, 'Frontend', {
       stage: props.stage,
@@ -54,6 +86,9 @@ export class AthleonStack extends cdk.Stack {
       stage: props.stage,
       eventBus: sharedStack.eventBus,
       sharedLayer: sharedStack.sharedLayer,
+      appConfigApplicationId: appConfigApplication.applicationId,
+      appConfigEnvironmentId: appConfigEnvironment.environmentId,
+      appConfigConfigProfileId: configProfile.ref,
     });
 
     // Wire Organizations API routes
@@ -129,13 +164,23 @@ export class AthleonStack extends cdk.Stack {
     });
 
     // 5. API Routing (wire Lambdas to API Gateway)
-    // Competitions
+    // Competitions - Legacy Handler (to be deprecated)
     const competitions = networkStack.api.root.addResource('competitions');
     competitions.addMethod('ANY', new apigateway.LambdaIntegration(competitionsStack.competitionsLambda), {
       authorizer: networkStack.authorizer,
     });
     competitions.addResource('{proxy+}').addMethod('ANY', 
       new apigateway.LambdaIntegration(competitionsStack.competitionsLambda), 
+      { authorizer: networkStack.authorizer }
+    );
+
+    // Competitions V2 - DDD Handler (parallel deployment for migration)
+    const competitionsV2 = networkStack.api.root.addResource('competitions-v2');
+    competitionsV2.addMethod('ANY', new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda), {
+      authorizer: networkStack.authorizer,
+    });
+    competitionsV2.addResource('{proxy+}').addMethod('ANY', 
+      new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda), 
       { authorizer: networkStack.authorizer }
     );
 
@@ -161,9 +206,20 @@ export class AthleonStack extends cdk.Stack {
     const publicExercises = publicRoot.addResource('exercises');
     publicExercises.addMethod('GET', new apigateway.LambdaIntegration(scoringStack.exercisesLambda));
 
-    // Public WODs
+    // Public Categories (CORS-friendly)
+    const publicCategories = publicRoot.addResource('categories');
+    publicCategories.addMethod('GET', new apigateway.LambdaIntegration(categoriesStack.categoriesPublicLambda));
+
+    // Public WODs (CORS-friendly)
     const publicWods = publicRoot.addResource('wods');
-    publicWods.addMethod('GET', new apigateway.LambdaIntegration(wodsStack.wodsLambda));
+    publicWods.addMethod('GET', new apigateway.LambdaIntegration(wodsStack.wodsPublicLambda));
+
+    // Public Schedules (CORS-friendly)
+    const publicSchedules = publicRoot.addResource('schedules');
+    publicSchedules.addMethod('GET', new apigateway.LambdaIntegration(schedulingStack.publicSchedulesLambda));
+    publicSchedules.addResource('{proxy+}').addMethod('GET', 
+      new apigateway.LambdaIntegration(schedulingStack.publicSchedulesLambda)
+    );
 
     // Public Scores
     const publicScores = publicRoot.addResource('scores');
@@ -254,7 +310,26 @@ export class AthleonStack extends cdk.Stack {
       schedulingEventBus: schedulingStack.schedulingEventBus,
     });
 
-    // Outputs
+    // AppConfig Outputs
+    new cdk.CfnOutput(this, 'AppConfigApplicationId', {
+      value: appConfigApplication.applicationId,
+      exportName: `AthleonAppConfig-ApplicationId-${props.stage}`,
+    });
+
+    new cdk.CfnOutput(this, 'AppConfigEnvironmentId', {
+      value: appConfigEnvironment.environmentId,
+      exportName: `AthleonAppConfig-EnvironmentId-${props.stage}`,
+    });
+
+    new cdk.CfnOutput(this, 'AppConfigConfigProfileId', {
+      value: configProfile.ref,
+      exportName: `AthleonAppConfig-ConfigProfileId-${props.stage}`,
+    });
+
+    new cdk.CfnOutput(this, 'AppConfigDeploymentStrategyId', {
+      value: deploymentStrategy.ref,
+      exportName: `AthleonAppConfig-DeploymentStrategyId-${props.stage}`,
+    });
     new cdk.CfnOutput(this, 'Stage', { value: props.stage });
     new cdk.CfnOutput(this, 'ApiUrl', { 
       value: networkStack.domainName 

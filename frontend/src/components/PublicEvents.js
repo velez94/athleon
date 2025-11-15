@@ -214,13 +214,13 @@ function PublicEvents() {
         .event-cube:hover {
           transform: translateY(-12px);
           box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-          border-color: rgba(102, 126, 234, 0.2);
+          border-color: rgba(255, 87, 34, 0.3);
         }
         .event-image {
           width: 100%;
           height: 200px;
           overflow: hidden;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           display: flex;
           align-items: center;
           justify-content: center;

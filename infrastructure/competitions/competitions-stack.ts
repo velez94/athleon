@@ -21,6 +21,7 @@ export class CompetitionsStack extends Construct {
   public readonly eventDaysTable: dynamodb.Table;
   public readonly competitionsEventBus: events.EventBus;
   public readonly competitionsLambda: lambda.Function;
+  public readonly competitionsDddLambda: lambda.Function; // New DDD handler
 
   constructor(scope: Construct, id: string, props: CompetitionsStackProps) {
     super(scope, id);
@@ -51,8 +52,9 @@ export class CompetitionsStack extends Construct {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    // Competitions Lambda
+    // Legacy Competitions Lambda (to be deprecated)
     this.competitionsLambda = createBundledLambda(this, 'CompetitionsLambda', 'competitions', {
+      handler: 'index.handler',
       environment: {
         EVENTS_TABLE: this.eventsTable.tableName,
         EVENT_DAYS_TABLE: this.eventDaysTable.tableName,
@@ -65,7 +67,24 @@ export class CompetitionsStack extends Construct {
       },
     });
 
-    // Grant permissions
+    // New DDD-Aligned Competitions Lambda
+    this.competitionsDddLambda = createBundledLambda(this, 'CompetitionsDddLambda', 'competitions', {
+      handler: 'handler-ddd.handler',
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 512, // Slightly more memory for domain logic
+      environment: {
+        EVENTS_TABLE: this.eventsTable.tableName,
+        EVENT_DAYS_TABLE: this.eventDaysTable.tableName,
+        EVENT_IMAGES_BUCKET: props.eventImagesBucket.bucketName,
+        ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,
+        ORGANIZATION_MEMBERS_TABLE: props.organizationMembersTable.tableName,
+        SCORING_SYSTEMS_TABLE: props.scoringSystemsTable.tableName,
+        EVENT_BUS_NAME: this.competitionsEventBus.eventBusName, // DDD handler uses this name
+        CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+      },
+    });
+
+    // Grant permissions to legacy Lambda
     this.eventsTable.grantReadWriteData(this.competitionsLambda);
     this.eventDaysTable.grantReadWriteData(this.competitionsLambda);
     props.eventImagesBucket.grantPut(this.competitionsLambda);
@@ -74,6 +93,27 @@ export class CompetitionsStack extends Construct {
     props.scoringSystemsTable.grantReadData(this.competitionsLambda);
     this.competitionsEventBus.grantPutEventsTo(this.competitionsLambda);
     props.eventBus.grantPutEventsTo(this.competitionsLambda);
+
+    // Grant permissions to DDD Lambda
+    this.eventsTable.grantReadWriteData(this.competitionsDddLambda);
+    this.eventDaysTable.grantReadWriteData(this.competitionsDddLambda);
+    props.eventImagesBucket.grantPut(this.competitionsDddLambda);
+    props.organizationEventsTable.grantReadWriteData(this.competitionsDddLambda);
+    props.organizationMembersTable.grantReadData(this.competitionsDddLambda);
+    props.scoringSystemsTable.grantReadData(this.competitionsDddLambda);
+    this.competitionsEventBus.grantPutEventsTo(this.competitionsDddLambda);
+    props.eventBus.grantPutEventsTo(this.competitionsDddLambda);
+
+    // Add CloudWatch Logs insights for domain events monitoring
+    new cdk.CfnOutput(this, 'CompetitionsDddLambdaName', {
+      value: this.competitionsDddLambda.functionName,
+      description: 'DDD Lambda function name for monitoring',
+    });
+
+    new cdk.CfnOutput(this, 'CompetitionsEventBusName', {
+      value: this.competitionsEventBus.eventBusName,
+      description: 'EventBridge bus for domain events',
+    });
 
     // Outputs
   }

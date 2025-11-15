@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API } from 'aws-amplify';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import ScoreBreakdown from '../athlete/ScoreBreakdown';
+import LoadingSpinner from '../common/Loading/LoadingSpinner';
 import './Backoffice.css';
 
 function Leaderboard() {
@@ -242,7 +243,7 @@ function Leaderboard() {
       </div>
 
       {loading ? (
-        <div className="loading">Loading...</div>
+        <LoadingSpinner size="md" message="Loading leaderboard..." variant="bars" />
       ) : leaderboard.length === 0 ? (
         <div className="no-data">No scores available</div>
       ) : (
@@ -416,7 +417,7 @@ function Leaderboard() {
         th {
           padding: 16px;
           text-align: left;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
           font-weight: 600;
           font-size: 13px;
@@ -482,7 +483,7 @@ function Leaderboard() {
         .score-cell, .points-cell {
           font-size: 20px;
           font-weight: 700;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;

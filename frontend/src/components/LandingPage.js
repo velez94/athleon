@@ -412,7 +412,7 @@ function LandingPage() {
 
         /* Buttons */
         .btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #EE5F32 0%, #B87333 100%);
           color: white;
           border: none;
           padding: 16px 32px;

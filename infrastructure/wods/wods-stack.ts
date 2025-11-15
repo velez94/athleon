@@ -20,6 +20,7 @@ export interface WodsStackProps  {
 
 export class WodsStack extends Construct {
   public readonly wodsLambda: lambda.Function;
+  public readonly wodsPublicLambda: lambda.Function;
   public readonly wodsTable: dynamodb.Table;
   public readonly wodsEventBus: events.EventBus;
 
@@ -53,6 +54,14 @@ export class WodsStack extends Construct {
       },
     });
 
+    // Public WODs Lambda (no auth, CORS-friendly)
+    this.wodsPublicLambda = createBundledLambda(this, 'WodsPublicLambda', 'wods', {
+      handler: 'public.handler',
+      environment: {
+        WODS_TABLE: this.wodsTable.tableName,
+      },
+    });
+
     // Grant permissions
     this.wodsTable.grantReadWriteData(this.wodsLambda);
     props.organizationEventsTable.grantReadData(this.wodsLambda);
@@ -60,6 +69,9 @@ export class WodsStack extends Construct {
     props.scoresTable.grantReadData(this.wodsLambda);
     this.wodsEventBus.grantPutEventsTo(this.wodsLambda);
     props.eventBus.grantPutEventsTo(this.wodsLambda);
+
+    // Grant read-only to public Lambda
+    this.wodsTable.grantReadData(this.wodsPublicLambda);
 
     // Outputs
   }

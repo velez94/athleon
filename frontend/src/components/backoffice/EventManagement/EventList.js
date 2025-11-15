@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from '../../common/Loading/LoadingSpinner';
 
 /**
  * EventList Component
@@ -23,12 +24,7 @@ const EventList = ({ events, onEdit, onDelete, loading }) => {
   };
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading events...</p>
-      </div>
-    );
+    return <LoadingSpinner size="md" message="Loading events..." variant="dots" />;
   }
 
   if (events.length === 0) {

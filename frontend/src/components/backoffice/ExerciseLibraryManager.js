@@ -122,7 +122,7 @@ function ExerciseLibraryManager() {
             }}
             style={{
               padding: '10px 20px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
@@ -282,7 +282,7 @@ function ExerciseLibraryManager() {
             type="submit"
             style={{
               padding: '10px 20px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
@@ -318,7 +318,7 @@ function ExerciseLibraryManager() {
           style={{
             padding: '8px 16px',
             margin: '0 5px',
-            background: filter === 'all' ? '#667eea' : '#e0e0e0',
+            background: filter === 'all' ? '#FF5722' : '#e0e0e0',
             color: filter === 'all' ? 'white' : '#333',
             border: 'none',
             borderRadius: '4px',
@@ -419,7 +419,7 @@ function ExerciseLibraryManager() {
                   style={{
                     flex: 1,
                     padding: '6px 12px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',

@@ -10,6 +10,9 @@ export interface OrganizationsStackProps {
   stage: string;
   eventBus: events.EventBus;
   sharedLayer: AthleonSharedLayer;
+  appConfigApplicationId?: string;
+  appConfigEnvironmentId?: string;
+  appConfigConfigProfileId?: string;
 }
 
 export class OrganizationsStack extends Construct {
@@ -70,6 +73,9 @@ export class OrganizationsStack extends Construct {
         ORGANIZATION_EVENTS_TABLE: this.organizationEventsTable.tableName,
         DOMAIN_EVENT_BUS: this.organizationsEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+        APPCONFIG_APPLICATION_ID: props.appConfigApplicationId || '',
+        APPCONFIG_ENVIRONMENT_ID: props.appConfigEnvironmentId || '',
+        APPCONFIG_CONFIGURATION_PROFILE_ID: props.appConfigConfigProfileId || '',
       },
     });
 

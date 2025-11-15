@@ -4,6 +4,7 @@ import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import OrganizationSelector from './OrganizationSelector';
+import LoadingSpinner from '../common/Loading/LoadingSpinner';
 import './OrganizationManagement.css';
 
 function OrganizationManagement() {
@@ -232,7 +233,7 @@ function OrganizationManagement() {
                       display: 'inline-block',
                       padding: '4px 12px',
                       borderRadius: '20px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                       color: 'white',
                       fontSize: '12px',
                       fontWeight: '500',
@@ -243,7 +244,7 @@ function OrganizationManagement() {
                   </div>
                   <div style={{
                     padding: '12px 20px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                     color: 'white',
                     borderRadius: '6px',
                     fontSize: '14px',
@@ -297,7 +298,7 @@ function OrganizationManagement() {
         <h2 style={{margin: 0}}>Organization Management</h2>
       </div>
       
-      {loading && <p>Loading...</p>}
+      {loading && <LoadingSpinner size="md" message="Loading organization..." variant="spinner" />}
       
       {organizationDetails && (
         <div className="organization-details" style={{
@@ -406,7 +407,7 @@ function OrganizationManagement() {
                   type="submit"
                   style={{
                     padding: '10px 20px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '6px',

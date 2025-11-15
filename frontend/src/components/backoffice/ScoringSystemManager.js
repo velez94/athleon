@@ -68,7 +68,7 @@ function ScoringSystemManager({ eventId }) {
           onClick={() => setShowForm(!showForm)}
           style={{
             padding: '10px 20px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
             color: 'white',
             border: 'none',
             borderRadius: '6px',
@@ -142,7 +142,7 @@ function ScoringSystemManager({ eventId }) {
             type="submit"
             style={{
               padding: '10px 20px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
