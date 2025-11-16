@@ -30,7 +30,9 @@ export class AnalyticsStack extends Construct {
       partitionKey: { name: 'organizationId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'metricId', type: dynamodb.AttributeType.STRING },
       billingMode: props.envConfig.dynamodb?.billingMode || dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecovery: props.envConfig.dynamodb?.pointInTimeRecovery || false,
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: props.envConfig.dynamodb?.pointInTimeRecovery || false,
+      },
       deletionProtection: props.envConfig.dynamodb?.deletionProtection || false,
     });
 

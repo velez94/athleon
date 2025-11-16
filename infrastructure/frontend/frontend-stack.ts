@@ -34,11 +34,10 @@ export class FrontendStack extends Construct {
       });
 
       // Certificate for CloudFront (must be in us-east-1)
-      this.cloudfrontCertificate = new acm.DnsValidatedCertificate(this, 'CloudFrontCertificate', {
+      this.cloudfrontCertificate = new acm.Certificate(this, 'CloudFrontCertificate', {
         domainName: props.domain,
         subjectAlternativeNames: [`*.${props.domain}`],
-        hostedZone: this.hostedZone,
-        region: 'us-east-1',
+        validation: acm.CertificateValidation.fromDns(this.hostedZone),
         certificateName: `${props.stage}-cloudfront-cert`,
       });
 
