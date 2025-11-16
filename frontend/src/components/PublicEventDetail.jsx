@@ -30,7 +30,7 @@ function PublicEventDetail() {
 
   const fetchEventData = async () => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL;
+      const apiUrl = import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL || 'https://api.dev.athleon.fitness';
       const response = await fetch(`${apiUrl}/public/events/${eventId}`);
       const eventData = await response.json();
 

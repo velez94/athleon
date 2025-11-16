@@ -3,8 +3,8 @@
  * Centralized configuration for the application
  */
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = import.meta.env.DEV;
+const isProduction = import.meta.env.PROD;
 
 export const appConfig = {
   // Environment
