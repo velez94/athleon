@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as certificatemanager from 'aws-cdk-lib/aws-certificatemanager';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
@@ -34,14 +35,15 @@ export class FrontendStack extends Construct {
       });
 
       // Certificate for CloudFront (must be in us-east-1)
-      this.cloudfrontCertificate = new acm.Certificate(this, 'CloudFrontCertificate', {
+      this.cloudfrontCertificate = new certificatemanager.DnsValidatedCertificate(this, 'CloudFrontCertificate', {
         domainName: props.domain,
         subjectAlternativeNames: [`*.${props.domain}`],
-        validation: acm.CertificateValidation.fromDns(this.hostedZone),
+        hostedZone: this.hostedZone,
+        region: 'us-east-1',
         certificateName: `${props.stage}-cloudfront-cert`,
       });
 
-      // Certificate for API Gateway (in current region)
+      // Certificate for API Gateway (in current region us-east-2)
       this.apiCertificate = new acm.Certificate(this, 'ApiCertificate', {
         domainName: `api.${props.domain}`,
         validation: acm.CertificateValidation.fromDns(this.hostedZone),

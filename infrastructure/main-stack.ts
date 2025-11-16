@@ -26,7 +26,10 @@ export interface AthleonStackProps extends cdk.StackProps {
 
 export class AthleonStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AthleonStackProps) {
-    super(scope, id, props);
+    super(scope, id, {
+      ...props,
+      crossRegionReferences: true,
+    });
 
     // 1. Shared Infrastructure
     const sharedStack = new SharedStack(this, 'Shared', { 
