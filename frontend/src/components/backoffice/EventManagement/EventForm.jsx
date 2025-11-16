@@ -395,7 +395,7 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
         </button>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .event-form {
           max-width: 900px;
           margin: 0 auto;

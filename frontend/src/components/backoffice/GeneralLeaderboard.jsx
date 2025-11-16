@@ -288,7 +288,7 @@ function GeneralLeaderboard() {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .general-leaderboard {
           padding: 20px;
         }

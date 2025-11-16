@@ -56,7 +56,7 @@ const NotificationContainer = ({ notifications, onRemove }) => {
         />
       ))}
       
-      <style jsx>{`
+      <style>{`
         .notification-container {
           position: fixed;
           top: 20px;
@@ -110,7 +110,7 @@ const Notification = ({ id: _id, message, type, onClose }) => {
         ×
       </button>
 
-      <style jsx>{`
+      <style>{`
         .notification {
           display: flex;
           align-items: center;

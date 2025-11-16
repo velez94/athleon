@@ -260,7 +260,7 @@ function AthleteLeaderboard({ userProfile }) {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .athlete-leaderboard {
           max-width: 1200px;
           margin: 0 auto;

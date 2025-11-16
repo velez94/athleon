@@ -919,7 +919,7 @@ function AthleteProfile({ user, signOut }) {
         )}
       </main>
 
-      <style jsx>{`
+      <style>{`
         .athlete-profile {
           max-width: 1200px;
           margin: 0 auto;

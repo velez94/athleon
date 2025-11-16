@@ -336,7 +336,7 @@ useEffect(() => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .category-management {
           padding: 20px;
         }

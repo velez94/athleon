@@ -315,7 +315,7 @@ function Leaderboard() {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .leaderboard {
           padding: 20px;
           max-width: 1400px;

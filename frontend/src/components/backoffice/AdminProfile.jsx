@@ -54,7 +54,7 @@ function AdminProfile({ user, signOut }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .admin-profile {
           max-width: 800px;
           margin: 0 auto;

@@ -743,7 +743,7 @@ function AthleteManagement() {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .athlete-management {
           padding: 20px;
         }

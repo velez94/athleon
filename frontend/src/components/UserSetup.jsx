@@ -152,7 +152,7 @@ useEffect(() => {
           </div>
         </div>
 
-        <style jsx>{`
+        <style>{`
           .user-setup {
             min-height: 100vh;
             background: linear-gradient(135deg, #B87333 0%, #FF5722 100%);

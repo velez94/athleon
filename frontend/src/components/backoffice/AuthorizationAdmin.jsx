@@ -558,7 +558,7 @@ const AuthorizationAdmin = () => {
         </div>
       )}
       
-      <style jsx>{`
+      <style>{`
         .admin-container {
           padding: var(--spacing-xl);
           background: var(--color-background);

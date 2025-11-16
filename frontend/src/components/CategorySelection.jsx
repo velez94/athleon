@@ -57,7 +57,7 @@ function CategorySelection({ onCategorySelect, selectedCategoryId }) {
         ))}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .category-selection {
           background: white;
           border-radius: 12px;

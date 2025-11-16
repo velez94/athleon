@@ -93,7 +93,7 @@ function ScoreManagement() {
         </table>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .score-management {
           padding: 0;
         }

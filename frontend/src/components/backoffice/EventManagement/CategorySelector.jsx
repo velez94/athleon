@@ -134,7 +134,7 @@ const CategorySelector = ({ selectedCategories = [], onChange }) => {
         })}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .category-selector {
           width: 100%;
         }

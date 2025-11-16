@@ -607,7 +607,7 @@ function EventEdit() {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .btn-back {
           background: none;
           border: 1px solid #dee2e6;

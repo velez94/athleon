@@ -70,7 +70,7 @@ function Dashboard({ user }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .dashboard {
           padding: 20px;
         }

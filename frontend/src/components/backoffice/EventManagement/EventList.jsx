@@ -108,7 +108,7 @@ const EventList = ({ events, onEdit, onDelete, loading }) => {
         </div>
       ))}
 
-      <style jsx>{`
+      <style>{`
         .loading-container {
           display: flex;
           flex-direction: column;

@@ -973,7 +973,7 @@ function ScoreEntry({ user: _user }) {
         </>
       )}
 
-      <style jsx>{`
+      <style>{`
         .score-entry {
           padding: 20px;
           max-width: 1400px;

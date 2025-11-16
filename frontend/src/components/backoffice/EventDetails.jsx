@@ -848,7 +848,7 @@ function EventDetails() {
         </>
       )}
 
-      <style jsx>{`
+      <style>{`
         .event-details {
           padding: 20px;
           max-width: 1400px;

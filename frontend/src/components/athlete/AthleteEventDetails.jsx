@@ -388,7 +388,7 @@ function AthleteEventDetails() {
           </div>
         </div>
 
-      <style jsx>{`
+      <style>{`
         .athlete-event-details {
           max-width: 1200px;
           margin: 0 auto;

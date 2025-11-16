@@ -262,7 +262,7 @@ function LandingPage() {
         </div>
       </footer>
 
-      <style jsx>{`
+      <style>{`
         .landing-page {
           min-height: 100vh;
           background: #ffffff;

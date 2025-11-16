@@ -262,7 +262,7 @@ function Analytics() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .analytics {
           padding: 20px;
         }

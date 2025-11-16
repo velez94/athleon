@@ -153,7 +153,7 @@ const WodSelector = ({ selectedWods = [], onChange }) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .wod-selector {
           width: 100%;
         }

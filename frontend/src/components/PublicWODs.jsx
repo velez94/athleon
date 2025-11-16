@@ -93,7 +93,7 @@ function PublicWODs() {
     return (
       <div className="public-wods">
         <div className="loading">Loading WODs...</div>
-        <style jsx>{`
+        <style>{`
           .public-wods {
             min-height: 100vh;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -188,7 +188,7 @@ function PublicWODs() {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .public-wods {
           min-height: 100vh;
           background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);

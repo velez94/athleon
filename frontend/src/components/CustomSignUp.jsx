@@ -239,7 +239,7 @@ function CustomSignUp({ onSuccess: _onSuccess, onSwitchToSignIn }) {
         </p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .custom-signup {
           min-height: 100vh;
           display: flex;

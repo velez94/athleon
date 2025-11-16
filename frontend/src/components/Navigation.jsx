@@ -57,7 +57,7 @@ function Navigation({ user, signOut }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .navigation {
           background: #343a40;
           color: white;

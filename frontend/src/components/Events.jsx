@@ -114,7 +114,7 @@ function Events({ user }) {
         ))}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .events {
           padding: 20px;
         }

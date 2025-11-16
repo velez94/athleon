@@ -73,7 +73,7 @@ class ErrorBoundary extends React.Component {
             </div>
           </div>
 
-          <style jsx>{`
+          <style>{`
             .error-boundary {
               min-height: 100vh;
               display: flex;
