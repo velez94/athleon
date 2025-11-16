@@ -414,37 +414,6 @@ function ScoreEntry({ user }) {
           </div>
         </div>
       ) : (
-        <>
-          <div className="selected-event-header">
-            <div>
-              <h2>✅ {selectedEvent.name}</h2>
-              <p>{selectedEvent.location} • {new Date(selectedEvent.startDate).toLocaleDateString()}</p>
-            </div>
-            <button className="btn-secondary" onClick={() => navigate('/backoffice/scores')}>Change Event</button>
-          </div>
-
-          {/* Step 2: Mode Selection - Only show after event is selected */}
-          <div className="mode-selection-header">
-            <h3>Step 2: Choose Entry Method</h3>
-            <div className="entry-mode-toggle">
-              <button 
-                className={`mode-btn ${entryMode === 'wod' ? 'active' : ''}`}
-                onClick={() => setEntryMode('wod')}
-              >
-                📝 WOD-Based Entry
-                <small>Manual selection of WOD and category</small>
-              </button>
-              <button 
-                className={`mode-btn ${entryMode === 'schedule' ? 'active' : ''}`}
-                onClick={() => setEntryMode('schedule')}
-              >
-                📅 Schedule-Based Entry
-                <small>Follow tournament schedule structure</small>
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
         <div className="score-form-container">
           <div className="selected-event-header">
             <div>

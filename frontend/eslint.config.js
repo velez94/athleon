@@ -36,6 +36,22 @@ export default [
         jest: 'readonly',
         global: 'readonly'
       },
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    settings: { react: { version: '18.3' } },
+    plugins: {
+      react,
+    },
+    rules: {
+      ...react.configs.recommended.rules,
+      ...react.configs['jsx-runtime'].rules,
+      'react/prop-types': 'off',
+      'no-unused-vars': 'warn',
+      'no-undef': 'warn',
     },
   },
   // React configuration

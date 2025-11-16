@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { API, Auth } from 'aws-amplify/api';
+import { generateClient } from 'aws-amplify/api';
+import { getCurrentUser } from 'aws-amplify/auth';
 import './AthleteScheduleViewer.css';
 import LoadingSpinner from './common/Loading/LoadingSpinner';
+
+const client = generateClient();
 
 const AthleteScheduleViewer = ({ eventId }) => {
   const [schedules, setSchedules] = useState([]);
@@ -10,17 +13,7 @@ const AthleteScheduleViewer = ({ eventId }) => {
   const [filterMode, setFilterMode] = useState('all'); // 'all' or 'mine'
   const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => {
-    getCurrentUser();
-  }, []);
-
-  useEffect(() => {
-    if (eventId && currentUser) {
-      loadPublishedSchedules();
-    }
-  }, [eventId, currentUser]);
-
-  const getCurrentUser = async () => {
+  const fetchCurrentUser = async () => {
     try {
       const user = await getCurrentUser();
       setCurrentUser(user);
@@ -28,6 +21,18 @@ const AthleteScheduleViewer = ({ eventId }) => {
       console.error('Error getting current user:', error);
     }
   };
+
+  useEffect(() => {
+    fetchCurrentUser();
+     
+  }, []);
+
+  useEffect(() => {
+    if (eventId && currentUser) {
+      loadPublishedSchedules();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId, currentUser]);
 
   const loadPublishedSchedules = async () => {
     setLoading(true);

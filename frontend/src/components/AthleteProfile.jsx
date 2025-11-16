@@ -6,7 +6,7 @@ import AthleteLeaderboard from './AthleteLeaderboard';
 import AthleteScheduleViewer from './AthleteScheduleViewer';
 
 function AthleteProfile({ user, signOut }) {
-  const _navigate = useNavigate();
+  // const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
@@ -50,7 +50,7 @@ function AthleteProfile({ user, signOut }) {
         scores: [],
         athletes: []
       });
-    } catch (error) {
+    } catch {
       console.log('Using basic event info (auth required for details)');
       setEventDetails({
         categories: [],
@@ -91,7 +91,8 @@ function AthleteProfile({ user, signOut }) {
     if (events.length > 0) {
       fetchScores();
     }
-  }, [events, fetchScores]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events]);
 
   const fetchProfile = async () => {
     try {
