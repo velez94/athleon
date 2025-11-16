@@ -71,6 +71,12 @@ jobs:
       - name: Build layer
         run: npm run build:layer
 
+      - name: CDK diff
+        run: npm run diff
+        env:
+          CI: true
+          ENVIRONMENT: ${{ inputs.environment }}
+
       - name: Deploy using existing script
         id: cdk-deploy
         run: npm run deploy
