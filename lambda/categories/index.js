@@ -131,7 +131,16 @@ exports.handler = async (event) => {
   // Extract user info for authenticated endpoints
   const userId = event.requestContext?.authorizer?.claims?.sub;
   const userEmail = event.requestContext?.authorizer?.claims?.email;
-    if (path === '' && method === 'POST') {
+
+  if (!userId) {
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ message: 'Authentication required' })
+    };
+  }
+
+  if (path === '' && method === 'POST') {
       const body = JSON.parse(event.body || '{}');
       const { eventId, categoryId, ...categoryData } = body;
 
