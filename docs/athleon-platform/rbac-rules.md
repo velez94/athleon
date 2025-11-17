@@ -41,6 +41,16 @@
 | Create Categories | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Update Categories | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Delete Categories | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Transversal Categories** |
+| Read Transversal Categories | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Create Transversal Categories | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Update Transversal Categories | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Delete Transversal Categories | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Global WODs** |
+| Read Global WODs | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Create Global WODs | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Update Global WODs | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Delete Global WODs | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Athletes** |
 | Register for Events | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Submit Scores | ❌ | ❌ | ❌ | ❌ | ✅ |
@@ -83,10 +93,10 @@ return Items?.[0]?.organizationId;
 - **Competitions**: Full RBAC with organization membership
 - **Organizations**: Role-based member management
 - **Events**: Organization-scoped access control
+- **Categories**: Full RBAC with transversal category protection
+- **WODs**: Full RBAC with organization-based authorization
 
 ### ❌ Missing RBAC Services
-- **WODs**: No authorization checks
-- **Categories**: No organization validation
 - **Scores**: Basic auth only, no role validation
 - **Users/Athletes**: No organization context
 
@@ -110,9 +120,7 @@ return Items?.[0]?.organizationId;
 ## Required Implementations
 
 ### High Priority (Security Gaps)
-1. **WODs Service**: Add organization-based authorization
-2. **Categories Service**: Implement organization validation
-3. **Scores Service**: Add role-based access control
+1. **Scores Service**: Add role-based access control
 
 ### Medium Priority (User Experience)
 1. **Token Refresh**: Implement automatic token updates
@@ -123,3 +131,29 @@ return Items?.[0]?.organizationId;
 1. **Access Logging**: Track all authorization decisions
 2. **Permission Reports**: Admin view of user permissions
 3. **Role History**: Track role changes over time
+
+## Transversal Resources
+
+### Definition
+Transversal resources are global system resources that are shared across all organizations:
+- **Transversal Categories**: Global categories (eventId = 'global')
+- **Global WODs**: System-wide workout templates
+- **System Exercises**: Shared exercise library
+
+### Access Control
+- **Read Access**: All authenticated users can view transversal resources
+- **Write Access**: Only super admin can create, update, or delete transversal resources
+- **Purpose**: Ensures consistency and prevents unauthorized modification of shared resources
+
+### Implementation
+```javascript
+// Check if category is transversal
+const isTransversal = eventId === 'global';
+
+// Authorization check
+if (isTransversal && action !== 'read') {
+  if (userEmail !== 'admin@athleon.fitness') {
+    return { authorized: false, reason: 'Only super admin can modify transversal categories' };
+  }
+}
+```

@@ -9,16 +9,68 @@ const ddb = DynamoDBDocumentClient.from(client);
 const CATEGORIES_TABLE = process.env.CATEGORIES_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 const ORGANIZATION_MEMBERS_TABLE = process.env.ORGANIZATION_MEMBERS_TABLE;
+const AUTHORIZATION_API = process.env.AUTHORIZATION_API || 'https://api.dev.athleon.fitness/authorization';
+
+// Check authorization via API (DDD-compliant)
+async function checkAuthorizationPermission(userId, resource, action, userRole = null) {
+  try {
+    const https = require('https');
+    const url = new URL(`${AUTHORIZATION_API}/authorize`);
+    
+    const postData = JSON.stringify({ userId, resource, action, contextId: "global", userRole });
+    
+    return new Promise((resolve) => {
+      const req = https.request({
+        hostname: url.hostname,
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      }, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const result = JSON.parse(data);
+            resolve(result.authorized === true);
+          } catch {
+            resolve(false);
+          }
+        });
+      });
+      
+      req.on('error', () => resolve(false));
+      req.write(postData);
+      req.end();
+    });
+  } catch (error) {
+    logger.error('Authorization API call failed:', error);
+    return false;
+  }
+}
 
 // Authorization helper
-async function checkCategoryAccess(userId, userEmail, action, eventId = null) {
-  // Super admin bypass
+async function checkCategoryAccess(userId, userEmail, action, eventId = null, isTransversal = false, userRole = null) {
+  // Check authorization system first
+  const hasPermission = await checkAuthorizationPermission(userId, "categories", action === "read" ? "read" : "write", userRole);
+  if (hasPermission) {
+    return { authorized: true, role: 'custom_role' };
+  }
+
+  // Super admin bypass - can do anything including transversal categories
   if (userEmail === 'admin@athleon.fitness') {
     return { authorized: true, role: 'super_admin' };
   }
 
-  // For global categories, any authenticated user can read
-  if (action === 'read' && (!eventId || eventId === 'global')) {
+  // Transversal categories - only super admin can edit/delete
+  if (isTransversal && (action === 'create' || action === 'update' || action === 'delete')) {
+    return { authorized: false, role: null, reason: 'Only super admin can modify transversal categories' };
+  }
+
+  // For global/transversal categories READ, any authenticated user can access
+  if (action === 'read' && (!eventId || eventId === 'global' || isTransversal)) {
     return { authorized: true, role: 'user' };
   }
 
@@ -131,6 +183,7 @@ exports.handler = async (event) => {
   // Extract user info for authenticated endpoints
   const userId = event.requestContext?.authorizer?.claims?.sub;
   const userEmail = event.requestContext?.authorizer?.claims?.email;
+  const userRole = event.requestContext?.authorizer?.claims?.['custom:role'];
 
   if (!userId) {
     return {
@@ -145,7 +198,7 @@ exports.handler = async (event) => {
       const { eventId, categoryId, ...categoryData } = body;
 
       // Check authorization for category creation
-      const authCheck = await checkCategoryAccess(userId, userEmail, 'create', eventId);
+      const authCheck = await checkCategoryAccess(userId, userEmail, 'create', eventId, false, userRole);
       if (!authCheck.authorized) {
         return {
           statusCode: 403,
@@ -239,7 +292,7 @@ exports.handler = async (event) => {
       
       if (eventId) {
         // Check authorization for reading event categories
-        const authCheck = await checkCategoryAccess(userId, userEmail, 'read', eventId);
+        const authCheck = await checkCategoryAccess(userId, userEmail, 'read', eventId, false, userRole);
         
         if (!authCheck.authorized) {
           return {
@@ -302,13 +355,18 @@ exports.handler = async (event) => {
         };
       }
 
+      // Check if this is a transversal category
+      const isTransversal = body.eventId === 'global';
+
       // Check authorization for category update
-      const authCheck = await checkCategoryAccess(userId, userEmail, 'update', body.eventId);
+      const authCheck = await checkCategoryAccess(userId, userEmail, 'update', body.eventId, isTransversal, userRole);
       if (!authCheck.authorized) {
         return {
           statusCode: 403,
           headers,
-          body: JSON.stringify({ message: 'Access denied - insufficient permissions to update categories' })
+          body: JSON.stringify({ 
+            message: authCheck.reason || 'Access denied - insufficient permissions to update categories' 
+          })
         };
       }
       
@@ -385,13 +443,26 @@ exports.handler = async (event) => {
       const categoryId = path.split('/')[1];
       const eventId = event.queryStringParameters?.eventId;
 
+      // Check if this is a transversal category
+      let isTransversal = false;
+      if (!eventId || eventId === 'global') {
+        // Check if category exists in global context (transversal)
+        const { Item } = await ddb.send(new GetCommand({
+          TableName: CATEGORIES_TABLE,
+          Key: { eventId: 'global', categoryId }
+        }));
+        isTransversal = !!Item;
+      }
+
       // Check authorization for category deletion
-      const authCheck = await checkCategoryAccess(userId, userEmail, 'delete', eventId);
+      const authCheck = await checkCategoryAccess(userId, userEmail, 'delete', eventId, isTransversal, userRole);
       if (!authCheck.authorized) {
         return {
           statusCode: 403,
           headers,
-          body: JSON.stringify({ message: 'Access denied - insufficient permissions to delete categories' })
+          body: JSON.stringify({ 
+            message: authCheck.reason || 'Access denied - insufficient permissions to delete categories' 
+          })
         };
       }
       

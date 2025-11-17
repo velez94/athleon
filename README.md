@@ -23,6 +23,7 @@ Multi-tenant competition management platform with role-based access control (RBA
    - Full system access
    - Can view all organizations and events
    - Bypass organization membership checks
+   - **Exclusive permissions**: Create/edit/delete transversal categories and global WODs
 
 2. **Organization Roles**
    - **Owner**: Full organization control, manage members, events
@@ -34,6 +35,19 @@ Multi-tenant competition management platform with role-based access control (RBA
    - Submit scores
    - View leaderboards
    - Manage profile
+
+## Transversal Resources
+
+### Definition
+Transversal resources are global system resources shared across all organizations:
+- **Transversal Categories**: Global categories (e.g., RX Male, Scaled Female)
+- **Global WODs**: System-wide workout templates
+- **System Exercises**: Shared exercise library
+
+### Access Control
+- **Read Access**: All authenticated users ✅
+- **Write Access**: Only super admin ✅
+- **Purpose**: Maintain consistency and prevent unauthorized modifications
 
 ## Data Model
 

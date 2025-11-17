@@ -5,9 +5,10 @@ import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import './Backoffice.css';
 
-function WODManagement() {
+function WODManagement({ user: userProp }) {
   const { eventId } = useParams();
-  const { user } = useAuthenticator((context) => [context.user]);
+  const { user: userFromAuth } = useAuthenticator((context) => [context.user]);
+  const user = userProp || userFromAuth; // Use prop if available, fallback to auth
   const { selectedOrganization } = useOrganization();
   const [wods, setWods] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -36,6 +37,16 @@ function WODManagement() {
   };
 
   const wodFormats = ['AMRAP', 'Chipper', 'EMOM', 'RFT', 'Ladder', 'Tabata'];
+
+  // Debug user on mount
+  useEffect(() => {
+    console.log('🔍 WODManagement mounted with user:', {
+      hasUser: !!user,
+      email: user?.attributes?.email,
+      customRole: user?.attributes?.['custom:role'],
+      allAttributes: user?.attributes
+    });
+  }, [user]);
 
   useEffect(() => {
     fetchWods();
@@ -174,9 +185,23 @@ function WODManagement() {
   };
 
   const canEditWod = (wod) => {
-    // Super admin can edit any WOD except transversal templates
-    if (user?.attributes?.email === 'admin@athleon.fitness') {
-      return !wod.isTransversal;
+    // Super admin can edit any WOD (including templates)
+    const isSuperAdmin = user?.attributes?.email === 'admin@athleon.fitness' || 
+                         user?.attributes?.['custom:role'] === 'super_admin';
+    
+    console.log('🔍 canEditWod check:', {
+      wodId: wod.wodId,
+      wodName: wod.name,
+      eventId: wod.eventId,
+      isTransversal: wod.isTransversal,
+      userEmail: user?.attributes?.email,
+      customRole: user?.attributes?.['custom:role'],
+      isSuperAdmin
+    });
+    
+    if (isSuperAdmin) {
+      console.log('✅ Super admin can edit this WOD');
+      return true; // Super admin can edit everything
     }
     
     // Can't edit transversal templates
@@ -208,7 +233,10 @@ function WODManagement() {
 
   const canDeleteWod = (wod) => {
     // Super admin can delete any WOD
-    if (user?.attributes?.email === 'admin@athleon.fitness') {
+    const isSuperAdmin = user?.attributes?.email === 'admin@athleon.fitness' || 
+                         user?.attributes?.['custom:role'] === 'super_admin';
+    
+    if (isSuperAdmin) {
       return true;
     }
     

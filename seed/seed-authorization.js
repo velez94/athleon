@@ -50,6 +50,9 @@ async function seedPermissions() {
   const permissions = [
     // Super Admin - all permissions
     { roleId: 'super_admin', resource: '*', actions: ['*'] },
+    { roleId: 'super_admin', resource: 'transversal_categories', actions: ['create', 'read', 'update', 'delete'] },
+    { roleId: 'super_admin', resource: 'global_categories', actions: ['create', 'read', 'update', 'delete'] },
+    { roleId: 'super_admin', resource: 'system_wods', actions: ['create', 'read', 'update', 'delete'] },
     
     // Organization Owner
     { roleId: 'org_owner', resource: 'organizations', actions: ['create', 'read', 'update', 'delete'] },
@@ -57,23 +60,27 @@ async function seedPermissions() {
     { roleId: 'org_owner', resource: 'wods', actions: ['create', 'read', 'update', 'delete'] },
     { roleId: 'org_owner', resource: 'categories', actions: ['create', 'read', 'update', 'delete'] },
     { roleId: 'org_owner', resource: 'members', actions: ['create', 'read', 'update', 'delete'] },
+    { roleId: 'org_owner', resource: 'transversal_categories', actions: ['read'] },
     
     // Organization Admin
     { roleId: 'org_admin', resource: 'events', actions: ['create', 'read', 'update', 'delete'] },
     { roleId: 'org_admin', resource: 'wods', actions: ['create', 'read', 'update', 'delete'] },
     { roleId: 'org_admin', resource: 'categories', actions: ['create', 'read', 'update', 'delete'] },
     { roleId: 'org_admin', resource: 'members', actions: ['create', 'read', 'update'] },
+    { roleId: 'org_admin', resource: 'transversal_categories', actions: ['read'] },
     
     // Organization Member
     { roleId: 'org_member', resource: 'events', actions: ['create', 'read', 'update'] },
     { roleId: 'org_member', resource: 'wods', actions: ['read'] },
     { roleId: 'org_member', resource: 'categories', actions: ['read'] },
+    { roleId: 'org_member', resource: 'transversal_categories', actions: ['read'] },
     
     // Athlete
     { roleId: 'athlete', resource: 'events', actions: ['read'] },
     { roleId: 'athlete', resource: 'registrations', actions: ['create', 'read', 'update'] },
     { roleId: 'athlete', resource: 'scores', actions: ['create', 'read'] },
-    { roleId: 'athlete', resource: 'profile', actions: ['read', 'update'] }
+    { roleId: 'athlete', resource: 'profile', actions: ['read', 'update'] },
+    { roleId: 'athlete', resource: 'transversal_categories', actions: ['read'] }
   ];
 
   for (const perm of permissions) {
@@ -88,11 +95,18 @@ async function seedPermissions() {
 async function seedUserRoles() {
   const userRoles = [
     {
-      userId: 'admin-user-id',
+      userId: 'admin@athleon.fitness',
       contextId: 'global',
       roleId: 'super_admin',
       assignedAt: new Date().toISOString(),
-      ttl: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days
+      ttl: Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60) // 1 year
+    },
+    {
+      userId: 'admin@athleon.fitness',
+      contextId: 'transversal_categories',
+      roleId: 'super_admin',
+      assignedAt: new Date().toISOString(),
+      ttl: Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60) // 1 year
     }
   ];
 

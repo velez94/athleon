@@ -333,7 +333,7 @@
   left: calc(var(--sidebar-width) - 60px);
 }
 
-.sidebar-container.hidden + * .sidebar-toggle {
+.sidebar-container.hidden ~ .sidebar-toggle {
   left: calc(var(--sidebar-collapsed-width) - 60px);
 }
 

@@ -265,9 +265,9 @@ function BackofficeLayout({ user, signOut }) {
           <Route path="events/:eventId" element={<EventDetails />} />
           <Route path="events" element={<EventManagement />} />
           <Route path="athletes" element={<AthleteManagement />} />
-          <Route path="categories" element={<CategoryManagement />} />
-          <Route path="wods" element={<WODManagement />} />
-          <Route path="exercises" element={<ExerciseLibraryManager />} />
+          <Route path="categories" element={<CategoryManagement user={user} />} />
+          <Route path="wods" element={<WODManagement user={user} />} />
+          <Route path="exercises" element={<ExerciseLibraryManager user={user} />} />
           <Route path="authorization" element={<AuthorizationAdmin />} />
           <Route path="scores" element={<ScoreEntry />} />
           <Route path="scores/:eventId" element={<ScoreEntry />} />

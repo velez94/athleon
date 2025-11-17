@@ -10,9 +10,58 @@ const WODS_TABLE = process.env.WODS_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 const ORGANIZATION_MEMBERS_TABLE = process.env.ORGANIZATION_MEMBERS_TABLE;
 const SCORES_TABLE = process.env.SCORES_TABLE;
+const AUTHORIZATION_API = process.env.AUTHORIZATION_API || 'https://api.dev.athleon.fitness/authorization';
+
+// Check authorization via API (DDD-compliant)
+async function checkAuthorizationPermission(userId, resource, action, userRole = null) {
+  try {
+    const https = require('https');
+    const url = new URL(`${AUTHORIZATION_API}/authorize`);
+    
+    const postData = JSON.stringify({ userId, resource, action, contextId: 'global', userRole });
+    
+    return new Promise((resolve) => {
+      const req = https.request({
+        hostname: url.hostname,
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      }, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const result = JSON.parse(data);
+            resolve(result.authorized === true);
+          } catch {
+            resolve(false);
+          }
+        });
+      });
+      
+      req.on('error', () => resolve(false));
+      req.write(postData);
+      req.end();
+    });
+  } catch (error) {
+    logger.error('Authorization API call failed:', error);
+    return false;
+  }
+}
 
 // Authorization helper with audit logging
-async function checkWodAccess(userId, userEmail, action, wodId = null, eventId = null) {
+async function checkWodAccess(userId, userEmail, action, wodId = null, eventId = null, userRole = null) {
+  // Check authorization system first
+  const hasPermission = await checkAuthorizationPermission(userId, 'wods', action === 'read' ? 'read' : 'write', userRole);
+  if (hasPermission) {
+    const decision = { authorized: true, role: 'custom_role' };
+    logger.info('Authorization decision (from auth system):', { userId, userEmail, action, decision, wodId, eventId });
+    return decision;
+  }
+
   // Super admin bypass
   if (userEmail === 'admin@athleon.fitness') {
     const decision = { authorized: true, role: 'super_admin' };
@@ -302,6 +351,7 @@ exports.handler = async (event) => {
   // Extract user info for authenticated endpoints
   const userId = event.requestContext?.authorizer?.claims?.sub;
   const userEmail = event.requestContext?.authorizer?.claims?.email;
+  const userRole = event.requestContext?.authorizer?.claims?.['custom:role'];
 
   if (!userId) {
     return {
@@ -443,7 +493,7 @@ exports.handler = async (event) => {
       const body = JSON.parse(event.body);
       
       // Check authorization for WOD creation
-      const authCheck = await checkWodAccess(userId, userEmail, 'create', null, body.eventId);
+      const authCheck = await checkWodAccess(userId, userEmail, 'create', null, body.eventId, userRole);
       if (!authCheck.authorized) {
         return {
           statusCode: 403,
@@ -534,7 +584,7 @@ exports.handler = async (event) => {
       const existingWod = wods[0];
 
       // Check authorization for WOD update using the existing WOD's eventId
-      const authCheck = await checkWodAccess(userId, userEmail, 'update', wodId, existingWod.eventId);
+      const authCheck = await checkWodAccess(userId, userEmail, 'update', wodId, existingWod.eventId, userRole);
       if (!authCheck.authorized) {
         return {
           statusCode: 403,
@@ -688,7 +738,7 @@ exports.handler = async (event) => {
       const eventId = event.queryStringParameters?.eventId;
 
       // Check authorization for WOD deletion
-      const authCheck = await checkWodAccess(userId, userEmail, 'delete', wodId, eventId);
+      const authCheck = await checkWodAccess(userId, userEmail, 'delete', wodId, eventId, userRole);
       if (!authCheck.authorized) {
         return {
           statusCode: 403,

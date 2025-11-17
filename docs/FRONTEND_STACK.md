@@ -229,5 +229,6 @@ aws cloudfront create-invalidation \
 - Infrastructure as code
 - Environment-specific resources
 - Production-ready configuration
+- Correct AWS config with environment variables
 
 The frontend infrastructure is now managed by CDK and can be deployed consistently across environments! 🚀

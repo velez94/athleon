@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 
-function ExerciseLibraryManager() {
-  const { user } = useAuthenticator((context) => [context.user]);
+function ExerciseLibraryManager({ user: userProp }) {
+  const { user: userFromAuth } = useAuthenticator((context) => [context.user]);
+  const user = userProp || userFromAuth;
   const [exercises, setExercises] = useState([]);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');

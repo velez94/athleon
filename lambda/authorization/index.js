@@ -1,5 +1,5 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, GetCommand, QueryCommand, PutCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, GetCommand, QueryCommand, PutCommand, ScanCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -40,8 +40,8 @@ exports.handler = async (event) => {
   try {
     // Authorization check endpoint
     if (cleanPath === '/authorize' && method === 'POST') {
-      const { userId, resource, action, contextId } = JSON.parse(event.body);
-      const authorized = await checkPermission(userId, resource, action, contextId);
+      const { userId, resource, action, contextId, userRole } = JSON.parse(event.body);
+      const authorized = await checkPermission(userId, resource, action, contextId, userRole);
       
       return {
         statusCode: 200,
@@ -123,6 +123,35 @@ exports.handler = async (event) => {
       return { statusCode: 201, headers, body: JSON.stringify({ message: 'Role assigned' }) };
     }
 
+    // Update permission - PUT /permissions/{roleId}/{resource}
+    if (cleanPath.match(/^\/permissions\/[^/]+\/[^/]+$/) && method === 'PUT') {
+      const parts = cleanPath.split('/').filter(Boolean);
+      const roleId = parts[1];
+      const resource = parts[2];
+      const { actions } = JSON.parse(event.body);
+      
+      await ddb.send(new PutCommand({
+        TableName: PERMISSIONS_TABLE,
+        Item: { roleId, resource, actions, updatedAt: new Date().toISOString() }
+      }));
+
+      return { statusCode: 200, headers, body: JSON.stringify({ message: 'Permission updated' }) };
+    }
+
+    // Delete permission - DELETE /permissions/{roleId}/{resource}
+    if (cleanPath.match(/^\/permissions\/[^/]+\/[^/]+$/) && method === 'DELETE') {
+      const parts = cleanPath.split('/').filter(Boolean);
+      const roleId = parts[1];
+      const resource = parts[2];
+      
+      await ddb.send(new DeleteCommand({
+        TableName: PERMISSIONS_TABLE,
+        Key: { roleId, resource }
+      }));
+
+      return { statusCode: 200, headers, body: JSON.stringify({ message: 'Permission deleted' }) };
+    }
+
     return { statusCode: 404, headers, body: JSON.stringify({ message: 'Not found' }) };
 
   } catch (error) {
@@ -134,7 +163,7 @@ exports.handler = async (event) => {
   }
 };
 
-async function checkPermission(userId, resource, action, contextId = 'global') {
+async function checkPermission(userId, resource, action, contextId = 'global', userRole = null) {
   const cacheKey = `${userId}:${resource}:${action}:${contextId}`;
   
   // Check cache first
@@ -144,7 +173,41 @@ async function checkPermission(userId, resource, action, contextId = 'global') {
   }
 
   try {
-    // Get user roles for context
+    // If userRole provided from Cognito JWT, use it directly
+    if (userRole) {
+      // Check for specific resource permission
+      let { Items: permissions } = await ddb.send(new QueryCommand({
+        TableName: PERMISSIONS_TABLE,
+        KeyConditionExpression: 'roleId = :roleId AND resource = :resource',
+        ExpressionAttributeValues: {
+          ':roleId': userRole,
+          ':resource': resource
+        }
+      }));
+
+      // If no specific permission, check for wildcard
+      if (!permissions || permissions.length === 0) {
+        const wildcardResult = await ddb.send(new QueryCommand({
+          TableName: PERMISSIONS_TABLE,
+          KeyConditionExpression: 'roleId = :roleId AND resource = :resource',
+          ExpressionAttributeValues: {
+            ':roleId': userRole,
+            ':resource': '*'
+          }
+        }));
+        permissions = wildcardResult.Items;
+      }
+
+      if (permissions && permissions.length > 0) {
+        const permission = permissions[0];
+        if (permission.actions.includes(action) || permission.actions.includes('*') || permission.actions.includes('ALL')) {
+          permissionsCache.set(cacheKey, { authorized: true, timestamp: Date.now() });
+          return true;
+        }
+      }
+    }
+
+    // Fallback: Get user roles from UserRolesTable
     const { Items: userRoles } = await ddb.send(new QueryCommand({
       TableName: USER_ROLES_TABLE,
       KeyConditionExpression: 'userId = :userId',

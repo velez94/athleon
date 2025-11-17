@@ -48,6 +48,7 @@ export class WodsStack extends Construct {
         ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,
         ORGANIZATION_MEMBERS_TABLE: props.organizationMembersTable.tableName,
         SCORES_TABLE: props.scoresTable.tableName,
+        AUTHORIZATION_API: `https://api.${props.stage === 'production' ? '' : props.stage + '.'}athleon.fitness/authorization`,
         DOMAIN_EVENT_BUS: this.wodsEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
         ...props.config.lambda.environment,

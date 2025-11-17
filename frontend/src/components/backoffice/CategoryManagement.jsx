@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
+import { useAuthenticator } from '@aws-amplify/ui-react';
 import './Backoffice.css';
 
-function CategoryManagement() {
+function CategoryManagement({ user: userProp }) {
+  const { user: userFromAuth } = useAuthenticator();
+  const user = userProp || userFromAuth;
+  const isSuperAdmin = user?.attributes?.email === 'admin@athleon.fitness' || 
+                       user?.attributes?.['custom:role'] === 'super_admin';
+  
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -211,7 +217,7 @@ useEffect(() => {
             )}
 
             <div className="category-actions">
-              {category.eventId && category.eventId !== 'global' && (
+              {(category.eventId && category.eventId !== 'global') || (category.eventId === 'global' && isSuperAdmin) ? (
                 <>
                   <button onClick={() => handleEdit(category)} className="btn-outline">
                     Edit
@@ -220,7 +226,7 @@ useEffect(() => {
                     Delete
                   </button>
                 </>
-              )}
+              ) : null}
             </div>
           </div>
         ))}
