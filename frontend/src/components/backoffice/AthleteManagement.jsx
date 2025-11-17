@@ -74,7 +74,7 @@ function AthleteManagement() {
       // Remove duplicates by userId and merge event registrations
       const athleteMap = new Map();
       allAthletes.forEach(athlete => {
-        const existing = athleteMap.client.get(athlete.userId);
+        const existing = athleteMap.get(athlete.userId);
         if (existing) {
           // Merge event registrations
           if (!existing.events) existing.events = [];
