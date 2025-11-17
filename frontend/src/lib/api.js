@@ -34,7 +34,9 @@ export const get = async (path, options = {}) => {
     }
   });
   const { body } = await restOperation.response;
-  return body;
+  // Parse the ReadableStream body as JSON
+  const data = await body.json();
+  return data;
 };
 
 export const post = async (path, data, options = {}) => {
@@ -52,7 +54,9 @@ export const post = async (path, data, options = {}) => {
     }
   });
   const { body } = await restOperation.response;
-  return body;
+  // Parse the ReadableStream body as JSON
+  const responseData = await body.json();
+  return responseData;
 };
 
 export const put = async (path, data, options = {}) => {
@@ -70,7 +74,9 @@ export const put = async (path, data, options = {}) => {
     }
   });
   const { body } = await restOperation.response;
-  return body;
+  // Parse the ReadableStream body as JSON
+  const responseData = await body.json();
+  return responseData;
 };
 
 export const del = async (path, options = {}) => {
