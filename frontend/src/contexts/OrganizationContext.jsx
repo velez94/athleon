@@ -35,15 +35,18 @@ export const OrganizationProvider = ({ children }) => {
   };
 
   const fetchOrganizations = async () => {
+    console.log('🔍 fetchOrganizations called');
     try {
       // Ensure user is authenticated before making API calls
       const user = await getCurrentUser();
+      console.log('🔍 Current user:', user);
       if (!user) {
         console.log('User not authenticated, skipping organizations fetch');
         return;
       }
 
       const response = await get('/organizations');
+      console.log('🔍 Organizations response:', response);
       
       // Ensure orgs is an array
       const orgs = Array.isArray(response) ? response : [];

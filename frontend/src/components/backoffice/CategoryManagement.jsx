@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 import './Backoffice.css';
 
 function CategoryManagement() {
@@ -35,7 +34,7 @@ useEffect(() => {
 
   const fetchCategories = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/categories');
+      const response = await get('/categories');
       setCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -97,7 +96,7 @@ useEffect(() => {
       const url = eventId 
         ? `/categories/${categoryId}?eventId=${eventId}`
         : `/categories/${categoryId}`;
-      await client.del('CalisthenicsAPI', url);
+      await del(url);
       fetchCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -115,9 +114,9 @@ useEffect(() => {
       };
 
       if (editingCategory) {
-        await client.put('CalisthenicsAPI', `/categories/${editingCategory.categoryId}`, { body: categoryData });
+        await put(`/categories/${editingCategory.categoryId}`, categoryData);
       } else {
-        await client.post('CalisthenicsAPI', '/categories', { body: categoryData });
+        await post('/categories', categoryData);
       }
 
       setShowModal(false);
