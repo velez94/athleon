@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { get, post } from '../lib/api';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 
 const OrganizationContext = createContext();
 
@@ -25,9 +25,9 @@ export const OrganizationProvider = ({ children }) => {
 
   const checkSuperAdmin = async () => {
     try {
-      const user = await getCurrentUser();
-      const email = user?.attributes?.email || user?.email;
-      setIsSuperAdmin(email === 'admin@athleon.fitness');
+      const session = await fetchAuthSession();
+      const userRole = session.tokens?.idToken?.payload?.['custom:role'];
+      setIsSuperAdmin(userRole === 'super_admin');
     } catch (error) {
       console.error('Error checking super admin:', error);
       setIsSuperAdmin(false);
@@ -52,10 +52,15 @@ export const OrganizationProvider = ({ children }) => {
       const orgs = Array.isArray(response) ? response : [];
       
       // Add "All Organizations" option for super admin
-      const currentUser = await getCurrentUser();
-      const email = currentUser?.attributes?.email || currentUser?.email;
+      // Get user role from auth session
+      const session = await fetchAuthSession();
+      const userRole = session.tokens?.idToken?.payload?.['custom:role'];
+      const email = session.tokens?.idToken?.payload?.email;
+      console.log('🔍 User role from session:', userRole);
+      console.log('🔍 User email from session:', email);
       
-      if (email === 'admin@athleon.fitness') {
+      // Check if user is super admin by role
+      if (userRole === 'super_admin') {
         const allOrgsOption = {
           organizationId: 'all',
           name: 'All Organizations',

@@ -81,10 +81,9 @@ export const getOrganizerRole = (user) => {
     organizerRole: user?.attributes?.['custom:organizerRole']
   });
   
-  // Check for super admin by email or role
-  if (user?.attributes?.email === 'admin@athleon.fitness' || 
-      user?.attributes?.['custom:role'] === 'super_admin') {
-    console.log('✅ User is SUPER_ADMIN (by email or role)');
+  // Check for super admin by role
+  if (user?.attributes?.['custom:role'] === 'super_admin') {
+    console.log('✅ User is SUPER_ADMIN (by role)');
     return ORGANIZER_ROLES.SUPER_ADMIN;
   }
   
