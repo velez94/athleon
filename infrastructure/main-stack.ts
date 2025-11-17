@@ -139,6 +139,7 @@ export class AthleonStack extends cdk.Stack {
     const competitionsStack = new CompetitionsStack(this, 'Competitions', {
       stage: props.stage,
       eventBus: sharedStack.eventBus,
+      sharedLayer: sharedStack.sharedLayer.layer,
       eventImagesBucket: sharedStack.eventImagesBucket,
       organizationEventsTable: organizationsStack.organizationEventsTable,
       organizationMembersTable: organizationsStack.organizationMembersTable,

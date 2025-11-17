@@ -22,7 +22,7 @@ useEffect(() => {
 
   const fetchScoringSystems = async () => {
     try {
-      const response = await get(`/events/${eventId}/scoring-systems`);
+      const response = await get(`/competitions/${eventId}/scoring-systems`);
       setScoringSystems(response);
     } catch (error) {
       console.error('Error fetching scoring systems:', error);
@@ -41,8 +41,7 @@ useEffect(() => {
   const createScoringSystem = async (e) => {
     e.preventDefault();
     try {
-      await post(`/events/${eventId}/scoring-systems`, formData
-      );
+      await post(`/competitions/${eventId}/scoring-systems`, formData);
       setShowForm(false);
       fetchScoringSystems();
     } catch (error) {
@@ -53,7 +52,7 @@ useEffect(() => {
   const deleteScoringSystem = async (scoringSystemId) => {
     if (!window.confirm('Delete this scoring system?')) return;
     try {
-      await del(`/events/${eventId}/scoring-systems/${scoringSystemId}`);
+      await del(`/competitions/${eventId}/scoring-systems/${scoringSystemId}`);
       fetchScoringSystems();
     } catch (error) {
       console.error('Error deleting scoring system:', error);

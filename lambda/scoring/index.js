@@ -1,7 +1,7 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge');
-const { calculateScore } = require('./calculator');
+const { calculateScore, parseTimeToSeconds } = require('./calculator');
 
 // Import from Lambda Layer
 const { verifyToken, isSuperAdmin, checkOrganizationAccess, getCorsHeaders } = require('/opt/nodejs/utils/auth');
@@ -74,6 +74,64 @@ async function emitScoreEvent(eventType, scoreData) {
   } catch (error) {
     console.error('Error emitting event:', error);
   }
+}
+
+// Validate time-based score submission
+function validateTimeBasedScore(rawData, scoringSystem) {
+  const { exercises, completionTime, timeCap } = rawData;
+  const errors = [];
+
+  // Validate all exercises have completion status (boolean)
+  if (!exercises || !Array.isArray(exercises)) {
+    errors.push('Exercises array is required for time-based scoring');
+    return { valid: false, errors };
+  }
+
+  // Check that all exercises have a boolean completed field
+  const missingCompletionStatus = exercises.some(ex => typeof ex.completed !== 'boolean');
+  if (missingCompletionStatus) {
+    errors.push('All exercises must have completion status (true/false)');
+  }
+
+  // Validate incomplete exercises have maxReps value
+  const incompleteExercises = exercises.filter(ex => !ex.completed);
+  const missingMaxReps = incompleteExercises.some(ex => 
+    ex.maxReps === undefined || ex.maxReps === null || ex.maxReps === ''
+  );
+  if (missingMaxReps) {
+    errors.push('Incomplete exercises must have maxReps value');
+  }
+
+  // Validate time format for completionTime
+  if (completionTime) {
+    const timePattern = /^[0-9]{1,2}:[0-9]{2}$/;
+    if (!timePattern.test(completionTime)) {
+      errors.push('Invalid time format. Use mm:ss (e.g., 10:00)');
+    }
+  }
+
+  // Validate completion time doesn't exceed time cap
+  if (completionTime && timeCap) {
+    const completionSeconds = parseTimeToSeconds(completionTime);
+    const capSeconds = parseTimeToSeconds(timeCap);
+    
+    if (completionSeconds > capSeconds) {
+      errors.push(`Completion time (${completionTime}) cannot exceed time cap (${timeCap})`);
+    }
+  }
+
+  // Validate time cap format if provided
+  if (timeCap) {
+    const timePattern = /^[0-9]{1,2}:[0-9]{2}$/;
+    if (!timePattern.test(timeCap)) {
+      errors.push('Invalid time cap format. Use mm:ss (e.g., 10:00)');
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
 }
 
 exports.handler = async (event) => {
@@ -200,6 +258,21 @@ exports.handler = async (event) => {
         }));
         
         if (scoringSystem) {
+          // Validate time-based score submission
+          if (scoringSystem.type === 'time-based') {
+            const validation = validateTimeBasedScore(body.rawData, scoringSystem);
+            if (!validation.valid) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ 
+                  message: 'Validation failed',
+                  errors: validation.errors
+                })
+              };
+            }
+          }
+          
           const result = calculateScore(body.rawData, scoringSystem);
           calculatedScore = result.calculatedScore;
           breakdown = result.breakdown;
@@ -353,6 +426,21 @@ exports.handler = async (event) => {
         }));
         
         if (scoringSystem) {
+          // Validate time-based score submission
+          if (scoringSystem.type === 'time-based') {
+            const validation = validateTimeBasedScore(body.rawData, scoringSystem);
+            if (!validation.valid) {
+              return {
+                statusCode: 400,
+                headers: getCorsHeaders(event),
+                body: JSON.stringify({ 
+                  message: 'Validation failed',
+                  errors: validation.errors
+                })
+              };
+            }
+          }
+          
           const result = calculateScore(body.rawData, scoringSystem);
           calculatedScore = result.calculatedScore;
           breakdown = result.breakdown;

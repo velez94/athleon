@@ -9,7 +9,7 @@ import './OrganizationManagement.css';
 
 function OrganizationManagement() {
   const { user } = useAuthenticator((context) => [context.user]);
-  const { organizations, selectedOrganization, selectOrganization, createOrganization } = useOrganization();
+  const { organizations, selectedOrganization, selectOrganization, createOrganization, isSuperAdmin: contextIsSuperAdmin } = useOrganization();
   const { organizationId } = useParams();
   const navigate = useNavigate();
   const [members, setMembers] = useState([]);
@@ -25,7 +25,8 @@ function OrganizationManagement() {
   const [newOrgName, setNewOrgName] = useState('');
   const [newOrgDescription, setNewOrgDescription] = useState('');
 
-  const isSuperAdmin = user?.attributes?.email === 'admin@athleon.fitness';
+  // Use isSuperAdmin from OrganizationContext (role-based check)
+  const isSuperAdmin = contextIsSuperAdmin;
   const isOwnerOrAdmin = selectedOrganization && ['owner', 'admin'].includes(selectedOrganization.role);
 
   // Handle URL parameter organization selection
