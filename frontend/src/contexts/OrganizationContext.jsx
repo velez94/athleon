@@ -44,9 +44,6 @@ export const OrganizationProvider = ({ children }) => {
       }
 
       const response = await get('/organizations');
-      console.log('🔍 Organizations API response:', response);
-      console.log('🔍 Response type:', typeof response);
-      console.log('🔍 Is array?', Array.isArray(response));
       
       // Ensure orgs is an array
       const orgs = Array.isArray(response) ? response : [];
