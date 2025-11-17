@@ -51,6 +51,12 @@ export class SharedStack extends Construct {
         userSrp: true,
       },
       generateSecret: false,
+      readAttributes: new cognito.ClientAttributes()
+        .withStandardAttributes({ email: true, emailVerified: true, givenName: true, familyName: true })
+        .withCustomAttributes('role'),
+      writeAttributes: new cognito.ClientAttributes()
+        .withStandardAttributes({ email: true, givenName: true, familyName: true })
+        .withCustomAttributes('role'),
     });
 
     // Central EventBridge Bus for cross-domain events

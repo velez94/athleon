@@ -4,7 +4,7 @@ const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPassw
 
 const client = new CognitoIdentityProviderClient({ region: 'us-east-2' });
 
-const USER_POOL_ID = 'us-east-2_0m42KBG3O';
+const USER_POOL_ID = 'us-east-2_hVzMW4EYB';
 const SUPER_ADMIN_EMAIL = 'admin@athleon.fitness';
 const TEMP_PASSWORD = 'TempPass123!';
 const PERMANENT_PASSWORD = 'SuperAdmin123!';

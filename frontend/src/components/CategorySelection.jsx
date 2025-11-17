@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get } from 'aws-amplify/api';
 
 function CategorySelection({ onCategorySelect, selectedCategoryId }) {
   const [categories, setCategories] = useState([]);
@@ -12,7 +11,11 @@ function CategorySelection({ onCategorySelect, selectedCategoryId }) {
 
   const fetchCategories = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/categories');
+      const apiResponse = await get({
+        apiName: 'CalisthenicsAPI',
+        path: '/categories'
+      }).response;
+      const response = await apiResponse.body.json();
       setCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);

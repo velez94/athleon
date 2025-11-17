@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get } from 'aws-amplify/api';
 import { useTranslation } from 'react-i18next';
 import CategorySelection from './CategorySelection';
 import AthleteProfile from './AthleteProfile';
@@ -16,15 +15,19 @@ function UserSetup({ user, signOut }) {
   const [alias, setAlias] = useState('');
   const [loading, setLoading] = useState(true);
 
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-useEffect(() => {
+  useEffect(() => {
     checkUserSetup();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const checkUserSetup = async () => {
     try {
       // Check if user already has a profile with category
-      const response = await client.get('CalisthenicsAPI', '/athletes');
+      const apiResponse = await get({
+        apiName: 'CalisthenicsAPI',
+        path: '/athletes'
+      }).response;
+      const response = await apiResponse.body.json();
       const userAthlete = response.find(athlete => 
         athlete.email === user?.attributes?.email
       );
