@@ -79,9 +79,12 @@ jobs:
           CI: true
           ENVIRONMENT: ${{ inputs.environment }}
 
-      - name: Deploy CDK stack
+      - name: Deploy CDK stack with layer rebuild
         id: cdk-deploy
-        run: cdk deploy --all --require-approval never --context stage=${{ inputs.environment }}
+        run: |
+          # Force layer rebuild by updating timestamp
+          echo "// Layer built at $(date)" >> layers/athleon-shared/nodejs/utils/build-timestamp.js
+          cdk deploy --all --require-approval never --context stage=${{ inputs.environment }}
         env:
           CI: true
           ENVIRONMENT: ${{ inputs.environment }}
