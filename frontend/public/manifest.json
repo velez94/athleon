@@ -4,19 +4,19 @@
   "description": "Manage and compete in calisthenics competitions",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "src": "favicon-32.ico",
+      "sizes": "32x32",
       "type": "image/x-icon"
     },
     {
       "src": "favicon.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "461x598"
     },
     {
       "src": "favicon.svg",
       "type": "image/svg+xml",
-      "sizes": "512x512"
+      "sizes": "any"
     }
   ],
   "start_url": ".",
