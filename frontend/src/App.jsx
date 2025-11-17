@@ -60,33 +60,62 @@ function AuthenticatedRoutes({ user, signOut }) {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // Fetch the full user data with all attributes
+        // Fetch the full user data with all attributes from Cognito
         const currentUser = await getCurrentUser();
         const session = await fetchAuthSession();
         
-        console.log('🔍 Full user object:', {
+        console.log('🔍 getCurrentUser result:', {
           username: currentUser?.username,
           userId: currentUser?.userId,
           signInDetails: currentUser?.signInDetails
         });
         
-        console.log('🔍 User attributes from Authenticator:', {
+        console.log('🔍 User from Authenticator:', {
+          username: user?.username,
           email: user?.attributes?.email,
           role: user?.attributes?.['custom:role'],
           organizerRole: user?.attributes?.['custom:organizerRole'],
+          isSuperAdmin: user?.attributes?.['custom:isSuperAdmin'],
           allAttributes: user?.attributes
         });
         
-        console.log('🔍 Session tokens:', {
-          accessToken: session?.tokens?.accessToken ? 'present' : 'missing',
-          idToken: session?.tokens?.idToken ? 'present' : 'missing'
+        console.log('🔍 Session info:', {
+          hasAccessToken: !!session?.tokens?.accessToken,
+          hasIdToken: !!session?.tokens?.idToken,
+          userSub: session?.tokens?.idToken?.payload?.sub
         });
         
-        // Use the user from Authenticator as it has the attributes
-        setFullUser(user);
+        // The Authenticator user object should have all attributes
+        // If not, we need to extract them from the ID token
+        let userWithAttributes = user;
+        
+        if (!user?.attributes?.email && session?.tokens?.idToken) {
+          // Extract attributes from ID token if not in user object
+          const idTokenPayload = session.tokens.idToken.payload;
+          console.log('🔍 ID Token payload:', idTokenPayload);
+          
+          userWithAttributes = {
+            ...user,
+            attributes: {
+              sub: idTokenPayload.sub,
+              email: idTokenPayload.email,
+              email_verified: idTokenPayload.email_verified,
+              given_name: idTokenPayload.given_name,
+              family_name: idTokenPayload.family_name,
+              'custom:role': idTokenPayload['custom:role'],
+              'custom:organizerRole': idTokenPayload['custom:organizerRole'],
+              'custom:isSuperAdmin': idTokenPayload['custom:isSuperAdmin']
+            }
+          };
+          
+          console.log('🔍 Reconstructed user with attributes:', userWithAttributes);
+        }
+        
+        setFullUser(userWithAttributes);
         setIsReady(true);
       } catch (error) {
         console.error('❌ Error loading user data:', error);
+        // Fallback to user from Authenticator
         setFullUser(user);
         setIsReady(true);
       }
@@ -102,7 +131,9 @@ function AuthenticatedRoutes({ user, signOut }) {
   }
 
   const isOrganizer = canAccessBackoffice(fullUser);
-  console.log('🔍 Is organizer?', isOrganizer, 'for user:', fullUser?.attributes?.email);
+  console.log('🔍 Final check - Is organizer?', isOrganizer);
+  console.log('🔍 Final check - User email:', fullUser?.attributes?.email);
+  console.log('🔍 Final check - User role:', fullUser?.attributes?.['custom:role']);
 
   return (
     <Routes>
