@@ -97,7 +97,7 @@ function BackofficeLayout({ user, signOut }) {
               <div className="admin-text">
                 <h2>Athleon</h2>
                 <div className="user-info">
-                  <span>{user?.attributes?.given_name || user?.username}</span>
+                  <span>{user?.attributes?.email || user?.attributes?.given_name || user?.username}</span>
                   <span className="role-badge">{roleLabel}</span>
                   <LanguageSwitcher className="mb-2" />
                   <div 

@@ -27,20 +27,24 @@ export const OrganizationProvider = ({ children }) => {
   const checkSuperAdmin = async () => {
     try {
       const user = await getCurrentUser();
-      const email = user.attributes.email;
+      const email = user?.attributes?.email || user?.email;
       setIsSuperAdmin(email === 'admin@athleon.fitness');
     } catch (error) {
       console.error('Error checking super admin:', error);
+      setIsSuperAdmin(false);
     }
   };
 
   const fetchOrganizations = async () => {
     try {
-      const orgs = await client.get('CalisthenicsAPI', '/organizations');
+      const orgs = await client.get({
+        apiName: 'CalisthenicsAPI',
+        path: '/organizations'
+      });
       
       // Add "All Organizations" option for super admin
       const user = await getCurrentUser();
-      const email = user.attributes.email;
+      const email = user?.attributes?.email || user?.email;
       
       if (email === 'admin@athleon.fitness') {
         const allOrgsOption = {
@@ -70,6 +74,7 @@ export const OrganizationProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching organizations:', error);
+      setOrganizations([]);
     } finally {
       setLoading(false);
     }
@@ -81,8 +86,12 @@ export const OrganizationProvider = ({ children }) => {
   };
 
   const createOrganization = async (name, description) => {
-    const newOrg = await client.post('CalisthenicsAPI', '/organizations', {
-      body: { name, description }
+    const newOrg = await client.post({
+      apiName: 'CalisthenicsAPI',
+      path: '/organizations',
+      options: {
+        body: { name, description }
+      }
     });
     await fetchOrganizations();
     return newOrg;
