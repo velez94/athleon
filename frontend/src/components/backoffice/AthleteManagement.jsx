@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { useOrganization } from '../../contexts/OrganizationContext';
 
 function AthleteManagement() {
@@ -32,11 +33,17 @@ function AthleteManagement() {
   }, [selectedOrganization]);
 
   useEffect(() => {
-    if (events.length > 0) {
-      fetchCategories();
+    // For super admins, fetch athletes even if no events (they see all athletes globally)
+    // For regular organizers, only fetch when events exist
+    const shouldFetch = events.length > 0 || selectedOrganization?.organizationId === 'all';
+    
+    if (shouldFetch) {
+      if (events.length > 0) {
+        fetchCategories();
+      }
       fetchAthletes();
     }
-  }, [events]);
+  }, [events, selectedOrganization]);
 
   const fetchAthletes = async () => {
     if (!selectedOrganization) return;
@@ -45,13 +52,21 @@ function AthleteManagement() {
       console.log('Fetching athletes for organization:', selectedOrganization.organizationId);
       console.log('Available events:', events);
       
-      // Super admin with "All Organizations" selected - fetch ALL athletes
-      if (selectedOrganization.organizationId === 'all') {
-        console.log('Super admin mode - fetching ALL athletes');
+      // Check if user is super admin - they should ALWAYS see ALL athletes
+      const session = await fetchAuthSession();
+      const userRole = session.tokens?.idToken?.payload?.['custom:role'];
+      const isSuperAdmin = userRole === 'super_admin';
+      
+      if (isSuperAdmin) {
+        console.log('🔑 Super admin detected - fetching ALL athletes globally (bypassing organization filter)');
         const allAthletesResponse = await get('/athletes');
+        console.log('✅ Global athletes fetched:', allAthletesResponse?.length || 0);
         setAthletes(allAthletesResponse || []);
         return;
       }
+      
+      // Regular organizers: fetch athletes only for their organization's events
+      console.log('📋 Regular organizer - fetching athletes for organization events only');
       
       // Get all athletes registered for any event in this organization
       const allAthletes = [];

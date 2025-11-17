@@ -8,26 +8,26 @@ const USER_POOL_ID = 'us-east-2_hVzMW4EYB';
 const PASSWORD = 'SuperAdmin123!';
 
 const organizers = [
-  'admin@athleon.fitness',
-  'organizer1@test.com',
-  'organizer2@test.com',
-  'athlete1@test.com'
+  { email: 'admin@athleon.fitness', role: 'super_admin' },
+  { email: 'organizer1@test.com', role: 'organizer' },
+  { email: 'organizer2@test.com', role: 'organizer' },
+  { email: 'athlete1@test.com', role: 'athlete' }
 ];
 
 async function createOrganizers() {
   console.log('👥 Creating organizer test users...\n');
 
-  for (const email of organizers) {
+  for (const user of organizers) {
     try {
-      console.log(`📧 Creating user: ${email}`);
+      console.log(`📧 Creating user: ${user.email}`);
       
       await client.send(new AdminCreateUserCommand({
         UserPoolId: USER_POOL_ID,
-        Username: email,
+        Username: user.email,
         UserAttributes: [
-          { Name: 'email', Value: email },
+          { Name: 'email', Value: user.email },
           { Name: 'email_verified', Value: 'true' },
-          { Name: 'custom:role', Value: 'organizer' }
+          { Name: 'custom:role', Value: user.role }
         ],
         TemporaryPassword: 'TempPass123!',
         MessageAction: 'SUPPRESS'
@@ -35,18 +35,18 @@ async function createOrganizers() {
 
       await client.send(new AdminSetUserPasswordCommand({
         UserPoolId: USER_POOL_ID,
-        Username: email,
+        Username: user.email,
         Password: PASSWORD,
         Permanent: true
       }));
 
-      console.log(`✅ Created: ${email}`);
+      console.log(`✅ Created: ${user.email} (${user.role})`);
 
     } catch (error) {
       if (error.name === 'UsernameExistsException') {
-        console.log(`⚠️  User already exists: ${email}`);
+        console.log(`⚠️  User already exists: ${user.email}`);
       } else {
-        console.error(`❌ Error creating ${email}:`, error.message);
+        console.error(`❌ Error creating ${user.email}:`, error.message);
       }
     }
   }
