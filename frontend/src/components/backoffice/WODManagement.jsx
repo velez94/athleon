@@ -307,7 +307,7 @@ function WODManagement({ user: userProp }) {
     try {
       const wodData = {
         ...formData,
-        wodId: editingWod?.wodId || `wod-${Date.now()}`,
+        wodId: editingWod?.wodId || `wod-${crypto.randomUUID()}`,
         createdAt: editingWod?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };

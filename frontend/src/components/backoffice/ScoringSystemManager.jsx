@@ -15,7 +15,7 @@ function ScoringSystemManager({ eventId }) {
     }
   });
 
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+       
 useEffect(() => {
     fetchScoringSystems();
     fetchExercises();
