@@ -9,10 +9,10 @@ function AthleteLeaderboard({ userProfile }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [athletes, setAthletes] = useState([]);
   const [allScores, setAllScores] = useState([]);
-  const [expandedCards, setExpandedCards] = useState({});
+  const [, setExpandedCards] = useState({});
   const [leaderboardType] = useState('general');
-  const [publishedSchedules, setPublishedSchedules] = useState([]);
-  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [, setPublishedSchedules] = useState([]);
+  const [selectedSchedule] = useState(null);
 
   const fetchData = async () => {
     try {

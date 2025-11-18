@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { get, post, put, del } from '../../lib/api';
+import { get } from '../../lib/api';
 
 function AthleteEventDetails() {
   const { eventId } = useParams();
@@ -27,6 +27,7 @@ function AthleteEventDetails() {
     if (event && (selectedCategory || selectedWod)) {
       fetchScores();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedWod, event]);
 
   const fetchEventData = async () => {

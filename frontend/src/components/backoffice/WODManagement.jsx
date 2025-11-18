@@ -58,9 +58,11 @@ function WODManagement({ user: userProp }) {
     if (eventId) {
       fetchScoringSystems();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     calculateMaxScore();
   }, [formData.movements, exercises]);
 
@@ -439,7 +441,7 @@ function WODManagement({ user: userProp }) {
     let totalEDS = 0;
     const breakdown = [];
     
-    wod.movements.forEach((movement, _idx) => {
+    wod.movements.forEach((movement) => {
       
       // Match by exerciseId first, then by name (case-insensitive)
       const exercise = exercises.find(e => 

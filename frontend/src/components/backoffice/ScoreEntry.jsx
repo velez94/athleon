@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post, put, del } from '../../lib/api';
+import { get, post } from '../../lib/api';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function ScoreEntry({ user: _user }) {
@@ -82,6 +82,7 @@ function ScoreEntry({ user: _user }) {
       fetchPublishedSchedules();
       fetchAthletes();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent]);
 
   useEffect(() => {
@@ -104,6 +105,7 @@ function ScoreEntry({ user: _user }) {
       
       // Fetch scoring system for this WOD
       fetchScoringSystem(wod);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }
   }, [scoreData.wodId, wods]);
 
@@ -246,6 +248,7 @@ function ScoreEntry({ user: _user }) {
   useEffect(() => {
     if (selectedEvent) {
       console.log('Fetching scores for:', { eventId: selectedEvent.eventId, wodId: scoreData.wodId, categoryId: scoreData.categoryId });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
       fetchScores();
     }
   }, [selectedEvent?.eventId, scoreData.wodId, scoreData.categoryId]);

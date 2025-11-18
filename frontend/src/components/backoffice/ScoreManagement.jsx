@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post, put, del } from '../../lib/api';
+import { get } from '../../lib/api';
 import { useOrganization } from '../../contexts/OrganizationContext';
 
 function ScoreManagement() {
@@ -12,6 +12,7 @@ function ScoreManagement() {
     if (selectedOrganization) {
       fetchEvents();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrganization]);
 
   useEffect(() => {

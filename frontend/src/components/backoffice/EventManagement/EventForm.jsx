@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post, put, del } from '../../../lib/api';
+import { post, put } from '../../lib/api';
 import { useNotification } from '../../common/NotificationProvider';
 import { validateForm, validateRequired, validateDateRange } from '../../../utils/validation';
 import { safeAsync } from '../../../utils/errorHandler';

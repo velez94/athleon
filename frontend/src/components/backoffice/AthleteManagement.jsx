@@ -30,6 +30,7 @@ function AthleteManagement({ user: userProp }) {
     if (selectedOrganization) {
       fetchCompetitions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrganization]);
 
   useEffect(() => {
@@ -42,6 +43,7 @@ function AthleteManagement({ user: userProp }) {
         fetchCategories();
       }
       fetchAthletes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }
   }, [events, selectedOrganization]);
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { get, post, put, del } from '../../../lib/api';
+import { get } from '../../lib/api';
 
 /**
  * WodSelector Component

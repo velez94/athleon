@@ -26,6 +26,7 @@ export const useSession = () => {
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   const createSession = async () => {

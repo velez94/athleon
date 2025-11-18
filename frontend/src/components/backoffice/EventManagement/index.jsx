@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { get, post, put, del } from '../../../lib/api';
+import { del } from '../../lib/api';
 import { useOrganization } from '../../../contexts/OrganizationContext';
 import { useEvents } from '../../../hooks/useEvents';
 import { useNotification } from '../../common/NotificationProvider';
@@ -16,7 +16,7 @@ import './EventManagement.css';
  * Main component for managing events - now much smaller and cleaner!
  */
 function EventManagement() {
-  const _navigate = useNavigate();
+  // const navigate = useNavigate();
   const { selectedOrganization } = useOrganization();
   const { showNotification } = useNotification();
   

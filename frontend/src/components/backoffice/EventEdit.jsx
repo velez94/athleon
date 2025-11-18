@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { get, post, put } from '../../lib/api';
+import { get, put } from '../../lib/api';
 
 function EventEdit() {
   const { eventId } = useParams();
@@ -30,6 +30,7 @@ function EventEdit() {
       fetchWods();
       fetchCategories();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   const fetchEvent = async () => {
@@ -45,7 +46,7 @@ function EventEdit() {
       console.log('Event Categories:', eventCategories);
       
       // Convert ISO dates to datetime-local format
-      const _formatDateForInput = (isoDate) => {
+      const formatDateForInput = (isoDate) => {
         if (!isoDate) return '';
         return new Date(isoDate).toISOString().slice(0, 16);
       };
@@ -53,14 +54,14 @@ function EventEdit() {
       setFormData({
         name: eventData.name || '',
         description: eventData.description || '',
-        startDate: formatDateForInput.put(eventData.startDate),
-        endDate: formatDateForInput.put(eventData.endDate),
+        startDate: formatDateForInput(eventData.startDate),
+        endDate: formatDateForInput(eventData.endDate),
         location: eventData.location || '',
         status: eventData.status || 'upcoming',
         published: eventData.published || false,
         publicLeaderboard: eventData.publicLeaderboard || false,
         maxParticipants: eventData.maxParticipants || null,
-        registrationDeadline: formatDateForInput.put(eventData.registrationDeadline),
+        registrationDeadline: formatDateForInput(eventData.registrationDeadline),
         workouts: eventWods,
         categories: eventCategories
       });

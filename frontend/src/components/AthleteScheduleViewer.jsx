@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post, put, del } from '../lib/api';
+import { get } from '../../lib/api';
 import { getCurrentUser } from 'aws-amplify/auth';
 import './AthleteScheduleViewer.css';
 import LoadingSpinner from './common/Loading/LoadingSpinner';

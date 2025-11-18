@@ -31,7 +31,7 @@ function EventManagement() {
   });
 
   const [imageFile, setImageFile] = useState(null);
-  const [_uploading, setUploading] = useState(false);
+  const [, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [wodSearch, setWodSearch] = useState('');
   const [wodFilter, setWodFilter] = useState('all');
@@ -52,6 +52,7 @@ function EventManagement() {
     if (selectedOrganization) {
       fetchEvents();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrganization]);
 
   useEffect(() => {
@@ -291,7 +292,7 @@ function EventManagement() {
     }
   };
 
-  const _handleAddWod = () => {
+  const handleAddWod = () => {
     setWodFormData({
       name: '',
       format: 'AMRAP',
@@ -335,7 +336,7 @@ function EventManagement() {
     }));
   };
 
-  const _removeWod = (wodId) => {
+  const removeWod = (wodId) => {
     setFormData(prev => ({
       ...prev,
       workouts: prev.workouts.filter(wod => wod.wodId !== wodId)

@@ -25,6 +25,7 @@ function PublicEventDetail() {
     if (event && selectedCategory) {
       fetchScores();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedWod, event]);
 
   const fetchEventData = async () => {

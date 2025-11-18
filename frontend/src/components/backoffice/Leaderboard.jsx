@@ -25,6 +25,7 @@ function Leaderboard() {
       fetchEvents();
     }
     fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrganization]);
 
   useEffect(() => {
@@ -32,11 +33,13 @@ function Leaderboard() {
       fetchWods();
       fetchScores();
       fetchAthletes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }
   }, [selectedEvent]);
 
   useEffect(() => {
     if (selectedEvent && (selectedWod || view === 'general')) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
       fetchScores();
     }
   }, [selectedWod, selectedCategory]);

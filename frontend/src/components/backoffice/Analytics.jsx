@@ -16,6 +16,7 @@ function Analytics() {
     if (selectedOrganization) {
       fetchAnalyticsData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrganization]);
 
   const fetchAnalyticsData = async () => {
