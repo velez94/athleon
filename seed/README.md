@@ -1,137 +1,153 @@
-# Athleon Seed Data
+# Seed Data Documentation
 
-## 🌱 Seed Scripts (6 files)
+## Overview
+This directory contains scripts to populate the Athleon platform with initial test data.
 
-### **User Setup**
-- **`create-organizer-users.js`** - Creates organizer test users
-  - Users: `organizer1@test.com`, `organizer2@test.com`
-  - Password: `Organizer123!`
+## Athletes (20 Total)
 
-### **Core Data**
-- **`seed-current-data.js`** - **MAIN SEED SCRIPT**
-  - Creates demo organization, event, WODs, exercises
-  - Uses global categories (requires seed-categories.js first)
-  - Uses current CDK table names
-  - Run after CDK deployment
+### Men (10 Athletes)
+Distributed across categories:
+- **Elite** (3): John Doe, Chris Brown, Kevin Davis
+- **Professional** (2): Mike Smith, James Miller
+- **Advanced** (3): Alex Johnson, Ryan Garcia, Brandon Lopez
+- **Intermediate** (2): David Wilson, Tyler Martinez
 
-- **`seed-categories.js`** - Creates global categories
-  - 8 professional categories (Men/Women × 4 levels)
-  - Intermediate, Advanced, Professional, Elite
-  - Global categories available to all events
+| Email | Name | Alias | Age | Country | Category |
+|-------|------|-------|-----|---------|----------|
+| john.doe@test.com | John Doe | JDoe | 28 | USA | men-elite |
+| mike.smith@test.com | Mike Smith | MikeS | 32 | Canada | men-professional |
+| alex.johnson@test.com | Alex Johnson | AJ | 26 | UK | men-advanced |
+| chris.brown@test.com | Chris Brown | CBrown | 30 | Australia | men-elite |
+| david.wilson@test.com | David Wilson | DWilson | 24 | USA | men-intermediate |
+| ryan.garcia@test.com | Ryan Garcia | RGarcia | 27 | Spain | men-advanced |
+| james.miller@test.com | James Miller | JMiller | 31 | Germany | men-professional |
+| kevin.davis@test.com | Kevin Davis | KDavis | 29 | France | men-elite |
+| tyler.martinez@test.com | Tyler Martinez | TMartinez | 23 | Mexico | men-intermediate |
+| brandon.lopez@test.com | Brandon Lopez | BLopez | 25 | Brazil | men-advanced |
 
-### **Template Data**
-- **`seed-baseline-wods.js`** - Creates comprehensive baseline WODs
-  - 8 category-specific WODs (Men/Women × 4 levels)
-  - Intermediate, Advanced, Elite, Professional levels
-  - Accessible via `/public/wods` endpoint
+### Women (10 Athletes)
+Distributed across categories:
+- **Elite** (3): Sarah Jones, Sophia Anderson, Amelia Harris
+- **Professional** (2): Emma Williams, Charlotte White
+- **Advanced** (3): Olivia Taylor, Mia Jackson, Evelyn Garcia
+- **Intermediate** (2): Isabella Thomas, Harper Martin
 
-- **`seed-exercises.js`** - Creates exercise library (21 exercises)
-  - Strength: Muscle Ups, Pull Ups, Bar Dips, etc.
-  - Endurance: Push Ups, Squats, Burpees, etc.
-  - Skill: Handstand, Front Lever, L-Sit, etc.
-  - Used for advanced scoring systems
+| Email | Name | Alias | Age | Country | Category |
+|-------|------|-------|-----|---------|----------|
+| sarah.jones@test.com | Sarah Jones | SJones | 27 | USA | women-elite |
+| emma.williams@test.com | Emma Williams | EmmaW | 30 | Canada | women-professional |
+| olivia.taylor@test.com | Olivia Taylor | OTaylor | 25 | UK | women-advanced |
+| sophia.anderson@test.com | Sophia Anderson | SophiaA | 28 | Australia | women-elite |
+| isabella.thomas@test.com | Isabella Thomas | IsabellaT | 22 | USA | women-intermediate |
+| mia.jackson@test.com | Mia Jackson | MiaJ | 26 | Spain | women-advanced |
+| charlotte.white@test.com | Charlotte White | CharlotteW | 31 | Germany | women-professional |
+| amelia.harris@test.com | Amelia Harris | AmeliaH | 29 | France | women-elite |
+| harper.martin@test.com | Harper Martin | HarperM | 23 | Mexico | women-intermediate |
+| evelyn.garcia@test.com | Evelyn Garcia | EvelynG | 24 | Brazil | women-advanced |
 
-### **Security**
-- **`seed-authorization.js`** - Creates RBAC system
-  - 5 roles: Super Admin, Org Owner/Admin/Member, Athlete
-  - 17 permissions across all resources
-  - Role assignments for system users
+**Password for all athletes**: `Athlete123!`
 
-## 🧹 Cleanup Scripts (2 files)
+## Categories (8 Global Categories)
 
-### **Data Cleanup**
-- **`cleanup-seed-data.js`** - Removes all seed data
-  - Deletes all DynamoDB records created by seed scripts
-  - Removes Cognito test users
-  - Resets platform to clean state
+### Men's Categories
+- **men-intermediate**: Intermediate level male athletes (18+)
+- **men-advanced**: Advanced level male athletes (18+)
+- **men-professional**: Professional level male athletes (18+)
+- **men-elite**: Elite level male athletes (18+)
 
-- **`cleanup-all.sh`** - **MASTER CLEANUP SCRIPT**
-  - Interactive confirmation prompt
-  - Runs cleanup-seed-data.js
-  - Safe reset with confirmation
+### Women's Categories
+- **women-intermediate**: Intermediate level female athletes (18+)
+- **women-advanced**: Advanced level female athletes (18+)
+- **women-professional**: Professional level female athletes (18+)
+- **women-elite**: Elite level female athletes (18+)
 
-## 📊 **Current Seed Data Structure**
+All categories are global (`eventId: 'global'`) and available across all events.
 
-### **Execution Order (seed-all.sh)**
-1. **create-organizer-users.js** - Cognito organizer users
-2. **seed-categories.js** - 8 global categories
-3. **seed-current-data.js** - Demo org/event (uses global categories)
-4. **seed-baseline-wods.js** - 8 template WODs
-5. **seed-exercises.js** - 21 exercise library
-6. **seed-authorization.js** - RBAC system
+## WODs (2 Template WODs)
 
-### **Cleanup Order (cleanup-all.sh)**
-1. **cleanup-seed-data.js** - Removes all data in reverse dependency order
-   - Scores → Schedules → Org Events → Org Members
-   - Athletes → WODs → Exercises → Categories → Events → Organizations
-   - Cognito test users (@test.com, admin@athleon.fitness)
+### 1. Baseline AMRAP
+- **Format**: AMRAP
+- **Time Limit**: 10 minutes
+- **Category**: men-elite
+- **Movements**:
+  - 10 Pull-ups
+  - 20 Push-ups
+  - 30 Air Squats
+- **Description**: Complete as many rounds as possible in 10 minutes
 
-## 📋 Usage Order
+### 2. The Gauntlet
+- **Format**: Chipper
+- **Time Limit**: 20 minutes
+- **Category**: men-elite
+- **Movements**:
+  - 50 Burpees
+  - 40 Pull-ups
+  - 30 Push-ups
+  - 20 Sit-ups
+  - 10 Squats
+- **Description**: Complete all movements for time
 
-### **Complete Setup (after CDK deploy)**
+## Exercises (21 Global Exercises)
+
+### Strength (8)
+- Muscle Up (Bodyweight) - 5 pts
+- Muscle Up (Weighted) - 5 pts + weight bonus
+- Pull Up (Bodyweight) - 1 pt
+- Pull Up (Weighted) - 1 pt + weight bonus
+- Bar Dips (Bodyweight) - 1 pt
+- Bar Dips (Weighted) - 1 pt + weight bonus
+- Squats (Weighted) - 0.5 pt + weight bonus
+- Pistol Squats (Weighted) - 1.5 pts + weight bonus
+
+### Endurance (6)
+- Push Ups (Bodyweight) - 0.5 pt
+- Push Ups (Deadstop) - 0.5 pt + deadstop bonus
+- Squats (Bodyweight) - 0.5 pt
+- Burpees - 1 pt
+- Zancadas Burpees - 2 pts
+- Chin Over Bar Hold - 2 pts per 10s
+
+### Skill (7)
+- Pistol Squats (Bodyweight) - 1.5 pts
+- Handstand Hold - 2 pts per 10s
+- Handstand Push Up - 4 pts
+- Front Lever Hold - 3 pts per 10s
+- One Arm Pull Up - 8 pts
+- Leg Raiser Muscle Up - 6 pts
+- L-Sit Hold - 2 pts per 10s
+
+## Running Seed Scripts
+
+### Seed All Data
 ```bash
-# Run all seed scripts in correct order
 cd seed
-AWS_PROFILE=labvel-dev node seed-categories.js      # 1. Global categories first
-AWS_PROFILE=labvel-dev node seed-current-data.js    # 2. Core data (uses global categories)
-AWS_PROFILE=labvel-dev node seed-baseline-wods.js   # 3. Template WODs
-AWS_PROFILE=labvel-dev node seed-exercises.js       # 4. Exercise library
-AWS_PROFILE=labvel-dev node seed-authorization.js   # 5. RBAC system
-```
-
-### **Quick Setup Script**
-```bash
-# Run the master seed script
 ./seed-all.sh
 ```
 
-### **Quick Cleanup Script**
+### Seed Individual Components
 ```bash
-# Reset platform to clean state
-./cleanup-all.sh
+# Categories and WODs
+AWS_PROFILE=labvel-dev node seed-categories.js
+
+# Exercises
+AWS_PROFILE=labvel-dev node seed-exercises.js
+
+# Athletes (requires table names)
+export ATHLETES_TABLE=<table-name>
+export ATHLETE_EVENTS_TABLE=<table-name>
+export EVENTS_TABLE=<table-name>
+export USER_POOL_ID=<pool-id>
+AWS_PROFILE=labvel-dev node seed-20-athletes.js
 ```
 
-## 🔄 **Reset & Reseed Workflow**
+### Get Table Names
 ```bash
-# 1. Clean existing data
-./cleanup-all.sh
-
-# 2. Reseed fresh data
-./seed-all.sh
+bash get-table-names.sh
 ```
 
-## 🎯 What Gets Created
+## Notes
 
-### **Organizations & Events**
-- 1 Demo organization: "Demo Athleon CC"
-- 1 Published event: "Demo Competition 2025"
-- Uses 8 global categories (Men/Women × 4 levels)
-- 2 Event-specific WODs: Fran, Grace
-
-### **Template Library**
-- 8 Baseline WODs (category-specific)
-- 21 Professional exercises
-- Complete RBAC system
-
-### **Total Database Records**
-- Organizations: 1
-- Events: 1  
-- Categories: 8 (global, created by seed-categories.js)
-- WODs: 10 (2 event + 8 template)
-- Exercises: 24 (21 + 3 basic)
-- Roles: 5
-- Permissions: 17
-
-## 🔗 Dependencies
-
-All scripts require:
-- AWS CLI configured with `labvel-dev` profile
-- CDK stack deployed
-- Node.js with AWS SDK v3
-
-## 🚨 Important Notes
-
-- Run scripts in order (dependencies exist)
-- Scripts are idempotent (safe to re-run)
-- Uses current CDK table names
-- Creates demo data for testing
+- All athletes are automatically registered for the "Demo Competition 2025" event
+- Athletes are distributed across different skill levels for realistic testing
+- All seed data uses `eventId: 'global'` or `eventId: 'template'` for platform-wide availability
+- Password for all test accounts: `Athlete123!`

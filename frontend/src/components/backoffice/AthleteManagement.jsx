@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { useOrganization } from '../../contexts/OrganizationContext';
 
-function AthleteManagement() {
+function AthleteManagement({ user: userProp }) {
   const { selectedOrganization } = useOrganization();
   const [athletes, setAthletes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -285,7 +285,26 @@ function AthleteManagement() {
     setShowModal(true);
   };
 
-  // Removed handleDelete - event organizers cannot delete athletes from platform
+  const handleDelete = async (athlete) => {
+    const isSuperAdmin = userProp?.attributes?.email === 'admin@athleon.fitness' || 
+                         userProp?.attributes?.['custom:role'] === 'super_admin';
+    
+    if (!isSuperAdmin) {
+      alert('Only super admin can delete athletes from the platform.');
+      return;
+    }
+
+    if (window.confirm(`Permanently delete ${athlete.firstName} ${athlete.lastName}? This action cannot be undone.`)) {
+      try {
+        await del(`/athletes/${athlete.athleteId}`);
+        await fetchAthletes();
+        alert('Athlete deleted successfully.');
+      } catch (error) {
+        console.error('Error deleting athlete:', error);
+        alert('Error deleting athlete. Please try again.');
+      }
+    }
+  };
 
   const handleReset = async (athlete) => {
     if (window.confirm(`Reset ${athlete.firstName} ${athlete.lastName}? This will force them to complete the welcome setup again.`)) {
@@ -525,7 +544,15 @@ function AthleteManagement() {
                         >
                           Reset
                       </button>
-                      {/* Removed delete button - event organizers cannot delete athletes from platform */}
+                      {(userProp?.attributes?.email === 'admin@athleon.fitness' || 
+                        userProp?.attributes?.['custom:role'] === 'super_admin') && (
+                        <button
+                          onClick={() => handleDelete(athlete)}
+                          className="btn-sm btn-danger"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

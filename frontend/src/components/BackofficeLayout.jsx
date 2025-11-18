@@ -264,7 +264,7 @@ function BackofficeLayout({ user, signOut }) {
           <Route path="events/:eventId/edit" element={<EventEdit />} />
           <Route path="events/:eventId" element={<EventDetails />} />
           <Route path="events" element={<EventManagement />} />
-          <Route path="athletes" element={<AthleteManagement />} />
+          <Route path="athletes" element={<AthleteManagement user={user} />} />
           <Route path="categories" element={<CategoryManagement user={user} />} />
           <Route path="wods" element={<WODManagement user={user} />} />
           <Route path="exercises" element={<ExerciseLibraryManager user={user} />} />

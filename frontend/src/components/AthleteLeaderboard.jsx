@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { get, post, put, del } from '../lib/api';
+import { get } from '../lib/api';
 
 function AthleteLeaderboard({ userProfile }) {
   const [events, setEvents] = useState([]);
@@ -9,10 +9,9 @@ function AthleteLeaderboard({ userProfile }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [athletes, setAthletes] = useState([]);
   const [allScores, setAllScores] = useState([]);
-  const [wods, setWods] = useState([]);
-  const [, _setExpandedCards] = useState({});
+  const [expandedCards, setExpandedCards] = useState({});
   const [leaderboardType] = useState('general');
-  const [, _setPublishedSchedules] = useState([]);
+  const [publishedSchedules, setPublishedSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   const fetchData = async () => {
@@ -49,16 +48,6 @@ function AthleteLeaderboard({ userProfile }) {
     } catch (error) {
       console.error('Error fetching scores:', error);
       setAllScores([]);
-    }
-  };
-
-  const fetchEventWods = async () => {
-    try {
-      const response = await get(`/wods?eventId=${selectedEvent.eventId}`);
-      setWods(response || []);
-    } catch (error) {
-      console.error('Error fetching WODs:', error);
-      setWods([]);
     }
   };
 
@@ -153,12 +142,11 @@ function AthleteLeaderboard({ userProfile }) {
   useEffect(() => {
     if (selectedEvent) {
       fetchEventScores();
-      fetchEventWods();
       fetchPublishedSchedules();
       fetchLeaderboard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEvent, leaderboardType, _selectedSchedule]);
+  }, [selectedEvent, leaderboardType, selectedSchedule]);
 
   useEffect(() => {
     if (allScores.length > 0) {

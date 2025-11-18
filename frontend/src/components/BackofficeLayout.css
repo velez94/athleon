@@ -94,7 +94,7 @@
 
 .admin-info {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   width: 100%;
 }
@@ -181,7 +181,7 @@
 
 .nav-links a {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   padding: 14px var(--nav-spacing-md);
   margin: 0 var(--nav-spacing-md);
   color: var(--nav-text-secondary);
@@ -219,7 +219,7 @@
 
 .nav-content {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--nav-spacing-md);
   width: 100%;
   min-width: 0;
@@ -232,8 +232,9 @@
   height: 24px;
   text-align: center;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-left: var(--nav-spacing-md);
   opacity: 0.9;
   flex-shrink: 0;
 }
@@ -257,15 +258,16 @@
 }
 
 .sidebar-container.hidden .nav-links {
-  align-items: center;
+  align-items: flex-start;
   padding: var(--nav-spacing-md) 0;
 }
 
 .sidebar-container.hidden .nav-links a {
   padding: 12px;
   margin: 0;
-  width: 48px;
-  justify-content: center;
+  width: auto;
+  justify-content: flex-start;
+  padding-left: var(--nav-spacing-md);
   transform: none;
 }
 
@@ -275,7 +277,8 @@
 }
 
 .sidebar-container.hidden .nav-content {
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: var(--nav-spacing-md);
   gap: 0;
   width: 100%;
 }
@@ -285,22 +288,24 @@
   min-width: 24px;
   width: 24px;
   height: 24px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .sidebar-container.hidden .admin-icon {
   font-size: 28px;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .sidebar-container.hidden .nav-header {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: var(--nav-spacing-md);
   padding: var(--nav-spacing-lg) 0;
 }
 
 .sidebar-container.hidden .admin-info {
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: var(--nav-spacing-md);
 }
 
 /* Toggle Button */
@@ -318,8 +323,9 @@
   cursor: pointer;
   font-size: 18px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-left: var(--nav-spacing-md);
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
