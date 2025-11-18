@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post, del } from '../../lib/api';
+import { get, post, put, del } from '../lib/api';
 import './SchedulerWizard.css';
 
 const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
@@ -54,7 +54,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
       console.log('🔍 Fetching schedule details for event:', eventId);
       
       // First get event details (same as EventDetails component)
-      await get(`/competitions/${eventId}`);
+      const eventResponse = await get(`/competitions/${eventId}`);
       
       console.log('📋 Event response keys:', Object.keys(eventResponse));
       console.log('📋 Categories field exists:', !!eventResponse.categories);

@@ -36,7 +36,6 @@ function CategoryManagement({ user: userProp }) {
        
 useEffect(() => {
     applyFilters();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories, filterGender, filterType]);
 
   const fetchCategories = async () => {

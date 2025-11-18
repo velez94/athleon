@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post, put } from '../../lib/api';
+import { get, post, put, del } from '../../lib/api';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import CompetitionScheduler from '../CompetitionScheduler';
 import ScoringSystemManager from './ScoringSystemManager';
@@ -15,7 +15,7 @@ function EventDetails() {
   const [scheduleWods, setScheduleWods] = useState({});
 
   const [event, setEvent] = useState(null);
-  const [, setEventDays] = useState([]);
+  const [_eventDays, setEventDays] = useState([]);
   const [wods, setWods] = useState([]);
   const [categories, setCategories] = useState([]);
   const [athletes, setAthletes] = useState([]);
@@ -42,7 +42,6 @@ function EventDetails() {
       fetchAthletes();
       fetchExercises();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, location.pathname]); // Add location.pathname to refresh on navigation
 
   useEffect(() => {
@@ -50,7 +49,6 @@ function EventDetails() {
       fetchScheduleById(scheduleId);
     } else {
       setSelectedSchedule(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }
   }, [scheduleId]);
 
@@ -271,7 +269,7 @@ function EventDetails() {
     return grouped;
   };
 
-  const getAthleteName = (athleteId) => {
+  const _getAthleteName = (athleteId) => {
     const athlete = scheduleAthletes[athleteId];
     if (athlete?.firstName && athlete?.lastName) {
       return `${athlete.firstName} ${athlete.lastName}`;
@@ -279,17 +277,17 @@ function EventDetails() {
     return athleteId;
   };
 
-  const getCategoryName = (categoryId) => {
+  const _getCategoryName = (categoryId) => {
     const category = scheduleCategories[categoryId];
     return category ? category.name : categoryId;
   };
 
-  const getAthleteAlias = (athleteId) => {
+  const _getAthleteAlias = (athleteId) => {
     const athlete = scheduleAthletes[athleteId];
     return athlete?.alias || athleteId;
   };
 
-  const getWodName = (wodId) => {
+  const _getWodName = (wodId) => {
     const wod = scheduleWods[wodId];
     return wod ? wod.name : wodId;
   };

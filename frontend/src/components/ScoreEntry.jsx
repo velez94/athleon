@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post } from '../../lib/api';
+import { get, post, put, del } from '../lib/api';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function ScoreEntry({ user }) {
@@ -16,7 +16,7 @@ function ScoreEntry({ user }) {
   const [entryMode, _setEntryMode] = useState('wod'); // 'wod' or 'schedule'
   const [publishedSchedules, setPublishedSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
-  const [, setScheduledSessions] = useState([]);
+  const [scheduledSessions, setScheduledSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [heatScores, setHeatScores] = useState({}); // Store scores by heat and athlete
   const [completedHeats, setCompletedHeats] = useState(new Set()); // Track completed heats
@@ -39,7 +39,6 @@ function ScoreEntry({ user }) {
   useEffect(() => {
     fetchEvents();
     fetchCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -65,13 +64,11 @@ function ScoreEntry({ user }) {
       console.log('Fetching WODs and schedules for event:', selectedEvent.eventId);
       fetchWods(selectedEvent.eventId);
       fetchPublishedSchedules();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }
   }, [selectedEvent]);
 
   useEffect(() => {
     if (selectedSchedule) {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
       fetchScheduledSessions();
     }
   }, [selectedSchedule]);
@@ -335,7 +332,7 @@ function ScoreEntry({ user }) {
     return grouped;
   };
 
-  const handleSessionSelection = (session) => {
+  const _handleSessionSelection = (session) => {
     setSelectedSession(session);
     // Auto-populate fields based on session
     setScoreData(prev => ({
@@ -466,7 +463,7 @@ function ScoreEntry({ user }) {
                                 <span className="session-count">{sessions.length} session{sessions.length > 1 ? 's' : ''}</span>
                               </div>
                               
-                              {sessions.map((session) => (
+                              {sessions.map((session, sessionIndex) => (
                                 <div key={session.sessionId} className="tournament-session">
                                   <div className="session-info">
                                     <h6>💪 {getWodName(session.wodId)}</h6>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get } from '../../lib/api';
+import { get, post, put, del } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { get, post, del } from '../../lib/api';
+import { get, post, put, del } from '../../lib/api';
 
 function ScoringSystemManager({ eventId }) {
   const [scoringSystems, setScoringSystems] = useState([]);
-  const [, setExercises] = useState([]);
+  const [_exercises, setExercises] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -19,7 +19,6 @@ function ScoringSystemManager({ eventId }) {
 useEffect(() => {
     fetchScoringSystems();
     fetchExercises();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   const fetchScoringSystems = async () => {

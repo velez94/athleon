@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get } from '../../lib/api';
+import { get, post, put, del } from '../lib/api';
 
 function Dashboard({ user }) {
   const [events, setEvents] = useState([]);

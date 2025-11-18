@@ -58,7 +58,6 @@ function OrganizationManagement() {
       fetchMembers();
       fetchEvents();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOrganization]);
 
   const fetchOrganizationDetails = async () => {

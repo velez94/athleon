@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get } from '../../lib/api';
+import { get, post, put, del } from '../lib/api';
 
 function Leaderboard() {
   const [events, setEvents] = useState([]);
@@ -18,7 +18,6 @@ function Leaderboard() {
     if (selectedEvent) {
       fetchLeaderboard();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent, selectedDivision]);
 
   const fetchEvents = async () => {

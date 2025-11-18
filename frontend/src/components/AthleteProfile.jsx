@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 // import { useNavigate } from 'react-router-dom'; // Unused
-import { get, post, put } from '../../lib/api';
+import { get, post, put, del } from '../lib/api';
 import AthleteLeaderboard from './AthleteLeaderboard';
 import AthleteScheduleViewer from './AthleteScheduleViewer';
 
@@ -83,7 +83,6 @@ function AthleteProfile({ user, signOut }) {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Call fetchScores when events are loaded

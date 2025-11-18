@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { get, post } from 'aws-amplify/api';
+import { get } from 'aws-amplify/api';
 import { useTranslation } from 'react-i18next';
 import CategorySelection from './CategorySelection';
 import AthleteProfile from './AthleteProfile';

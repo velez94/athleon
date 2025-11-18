@@ -31,13 +31,11 @@ function GeneralLeaderboard() {
       
       return () => clearInterval(interval);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent]);
 
   useEffect(() => {
     if (allScores.length > 0) {
       calculateGeneralLeaderboard(allScores);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }
   }, [selectedCategory, athletes, allScores]);
 
@@ -159,7 +157,7 @@ function GeneralLeaderboard() {
     return athletes.find(athlete => athlete.athleteId === athleteId);
   };
 
-  const getWorkoutName = (workoutId) => {
+  const _getWorkoutName = (workoutId) => {
     const workout = selectedEvent?.workouts?.find(w => w.wodId === workoutId);
     return workout?.name || `WOD ${workoutId}`;
   };
