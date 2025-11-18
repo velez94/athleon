@@ -194,14 +194,14 @@ function ScoreEntry({ user: _user }) {
       errors.push('Completion time must be in mm:ss format (e.g., 10:00)');
     }
     
-    // Validate completion time doesn't exceed time cap
-    if (completionTime && scoringSystem?.config?.timeCap) {
+    // Validate completion time doesn't exceed time cap (from WOD, not scoring system)
+    if (completionTime && selectedWod?.timeCap) {
       const completionSeconds = parseTimeToSeconds(completionTime);
       const capSeconds = parseTimeToSeconds(
-        `${scoringSystem.config.timeCap.minutes}:${String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}`
+        `${selectedWod.timeCap.minutes}:${String(selectedWod.timeCap.seconds).padStart(2, '0')}`
       );
       if (completionSeconds > capSeconds) {
-        errors.push(`Completion time cannot exceed time cap (${scoringSystem.config.timeCap.minutes}:${String(scoringSystem.config.timeCap.seconds).padStart(2, '0')})`);
+        errors.push(`Completion time cannot exceed time cap (${selectedWod.timeCap.minutes}:${String(selectedWod.timeCap.seconds).padStart(2, '0')})`);
       }
     }
     
@@ -383,8 +383,9 @@ function ScoreEntry({ user: _user }) {
       if (scoringSystem?.type === 'time-based') {
         // Time-based scoring payload
         const allCompleted = exerciseCompletionStatus.every(ex => ex.completed);
-        const timeCap = scoringSystem.config?.timeCap 
-          ? `${scoringSystem.config.timeCap.minutes}:${String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}`
+        // Get time cap from WOD record (not scoring system config)
+        const timeCap = selectedWod?.timeCap 
+          ? `${selectedWod.timeCap.minutes}:${String(selectedWod.timeCap.seconds).padStart(2, '0')}`
           : '10:00';
         
         scorePayload = {
@@ -661,9 +662,9 @@ function ScoreEntry({ user: _user }) {
                       <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                       <div style={{fontSize: '13px', color: '#666'}}>
                         <div><strong>Format:</strong> {selectedWod.format}</div>
-                        {scoringSystem.config?.timeCap && (
+                        {selectedWod.timeCap && (
                           <div>
-                            <strong>Time Cap:</strong> ⏱️ {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                            <strong>Time Cap:</strong> ⏱️ {selectedWod.timeCap.minutes}:{String(selectedWod.timeCap.seconds).padStart(2, '0')}
                           </div>
                         )}
                         <div style={{marginTop: '8px'}}><strong>Movements:</strong></div>
@@ -814,9 +815,9 @@ function ScoreEntry({ user: _user }) {
                           fontWeight: '500'
                         }}
                       />
-                      {scoringSystem.config?.timeCap && (
+                      {selectedWod.timeCap && (
                         <small style={{display: 'block', color: '#6c757d', marginTop: '6px'}}>
-                          Time Cap: {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                          Time Cap: {selectedWod.timeCap.minutes}:{String(selectedWod.timeCap.seconds).padStart(2, '0')}
                         </small>
                       )}
                     </div>
@@ -1074,9 +1075,9 @@ function ScoreEntry({ user: _user }) {
                               <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                               <div style={{fontSize: '13px', color: '#666'}}>
                                 <div><strong>Format:</strong> {selectedWod.format}</div>
-                                {scoringSystem.config?.timeCap && (
+                                {selectedWod.timeCap && (
                                   <div>
-                                    <strong>Time Cap:</strong> ⏱️ {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                                    <strong>Time Cap:</strong> ⏱️ {selectedWod.timeCap.minutes}:{String(selectedWod.timeCap.seconds).padStart(2, '0')}
                                   </div>
                                 )}
                                 <div style={{marginTop: '8px'}}><strong>Movements:</strong></div>
@@ -1227,9 +1228,9 @@ function ScoreEntry({ user: _user }) {
                                   fontWeight: '500'
                                 }}
                               />
-                              {scoringSystem.config?.timeCap && (
+                              {selectedWod.timeCap && (
                                 <small style={{display: 'block', color: '#6c757d', marginTop: '6px'}}>
-                                  Time Cap: {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                                  Time Cap: {selectedWod.timeCap.minutes}:{String(selectedWod.timeCap.seconds).padStart(2, '0')}
                                 </small>
                               )}
                             </div>

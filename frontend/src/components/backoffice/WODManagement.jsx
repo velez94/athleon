@@ -13,6 +13,7 @@ function WODManagement({ user: userProp }) {
   const [wods, setWods] = useState([]);
   const [categories, setCategories] = useState([]);
   const [exercises, setExercises] = useState([]);
+  const [scoringSystems, setScoringSystems] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingWod, setEditingWod] = useState(null);
@@ -21,6 +22,8 @@ function WODManagement({ user: userProp }) {
     format: 'AMRAP',
     timeLimit: '',
     categoryId: '',
+    scoringSystemId: '',
+    timeCap: { minutes: 0, seconds: 0 },
     movements: [{ exerciseId: '', exercise: '', reps: '', weight: '' }],
     description: '',
     isShared: false,
@@ -52,6 +55,9 @@ function WODManagement({ user: userProp }) {
     fetchWods();
     fetchCategories();
     fetchExercises();
+    if (eventId) {
+      fetchScoringSystems();
+    }
   }, [eventId]);
 
   useEffect(() => {
@@ -103,6 +109,16 @@ function WODManagement({ user: userProp }) {
     }
   };
 
+  const fetchScoringSystems = async () => {
+    try {
+      const response = await get(`/scoring-systems?eventId=${eventId}`);
+      setScoringSystems(response || []);
+    } catch (error) {
+      console.error('Error fetching scoring systems:', error);
+      setScoringSystems([]);
+    }
+  };
+
   const calculateMaxScore = () => {
     if (!formData.movements.length || !exercises.length) {
       setMaxScore(null);
@@ -149,6 +165,8 @@ function WODManagement({ user: userProp }) {
       format: 'AMRAP',
       timeLimit: '',
       categoryId: '',
+      scoringSystemId: '',
+      timeCap: { minutes: 0, seconds: 0 },
       movements: [{ exercise: '', reps: '', weight: '' }],
       description: '',
       isShared: false,
@@ -176,6 +194,8 @@ function WODManagement({ user: userProp }) {
       format: wod.format,
       timeLimit: wod.timeLimit || '',
       categoryId: wod.categoryId || '',
+      scoringSystemId: wod.scoringSystemId || '',
+      timeCap: wod.timeCap || { minutes: 0, seconds: 0 },
       movements: mappedMovements.length > 0 ? mappedMovements : [{ exerciseId: '', exercise: '', reps: '', weight: '' }],
       description: wod.description || '',
       isShared: wod.isShared || false,
@@ -271,6 +291,19 @@ function WODManagement({ user: userProp }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate time cap for time-based scoring
+    if (isTimeBasedScoring()) {
+      const totalSeconds = formData.timeCap.minutes * 60 + formData.timeCap.seconds;
+      if (totalSeconds <= 0) {
+        alert('Time cap must be greater than zero for time-based scoring');
+        return;
+      }
+      if (formData.timeCap.seconds < 0 || formData.timeCap.seconds > 59) {
+        alert('Seconds must be between 0 and 59');
+        return;
+      }
+    }
+    
     try {
       const wodData = {
         ...formData,
@@ -278,6 +311,14 @@ function WODManagement({ user: userProp }) {
         createdAt: editingWod?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+
+      // Only include timeCap if time-based scoring is selected
+      if (isTimeBasedScoring()) {
+        wodData.timeCap = formData.timeCap;
+      } else {
+        // Remove timeCap if not time-based scoring
+        delete wodData.timeCap;
+      }
 
       // Determine eventId based on context
       if (editingWod) {
@@ -368,6 +409,15 @@ function WODManagement({ user: userProp }) {
   const getCategoryName = (categoryId) => {
     const category = categories.find(c => c.categoryId === categoryId);
     return category?.name || 'No Category';
+  };
+
+  const getSelectedScoringSystem = () => {
+    return scoringSystems.find(s => s.scoringSystemId === formData.scoringSystemId);
+  };
+
+  const isTimeBasedScoring = () => {
+    const system = getSelectedScoringSystem();
+    return system?.type === 'time-based';
   };
 
   const filteredWods = wods.filter(wod => 
@@ -521,6 +571,20 @@ function WODManagement({ user: userProp }) {
             {wod.timeLimit && (
               <div className="time-limit">
                 <strong>Time Limit:</strong> {wod.timeLimit}
+              </div>
+            )}
+
+            {wod.timeCap && (wod.timeCap.minutes > 0 || wod.timeCap.seconds > 0) && (
+              <div className="time-cap" style={{
+                marginBottom: '8px',
+                fontSize: '13px',
+                color: '#555',
+                padding: '8px',
+                background: '#fff3cd',
+                borderRadius: '4px',
+                border: '1px solid #ffc107'
+              }}>
+                <strong>⏱️ Time Cap:</strong> {wod.timeCap.minutes}:{String(wod.timeCap.seconds).padStart(2, '0')}
               </div>
             )}
 
@@ -678,6 +742,76 @@ function WODManagement({ user: userProp }) {
                   ))}
                 </select>
               </div>
+
+              {eventId && scoringSystems.length > 0 && (
+                <div className="form-group">
+                  <label>Scoring System</label>
+                  <select
+                    value={formData.scoringSystemId}
+                    onChange={(e) => setFormData({...formData, scoringSystemId: e.target.value})}
+                  >
+                    <option value="">No Scoring System</option>
+                    {scoringSystems.map(system => (
+                      <option key={system.scoringSystemId} value={system.scoringSystemId}>
+                        {system.name} ({system.type})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {isTimeBasedScoring() && (
+                <div className="form-group">
+                  <label>Time Cap</label>
+                  <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    alignItems: 'center'
+                  }}>
+                    <div style={{flex: 1}}>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="Minutes"
+                        value={formData.timeCap.minutes}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          setFormData({
+                            ...formData,
+                            timeCap: { ...formData.timeCap, minutes: value >= 0 ? value : 0 }
+                          });
+                        }}
+                        style={{width: '100%'}}
+                      />
+                      <small style={{color: '#666', fontSize: '11px'}}>Minutes</small>
+                    </div>
+                    <span style={{fontSize: '20px', fontWeight: 'bold'}}>:</span>
+                    <div style={{flex: 1}}>
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        placeholder="Seconds"
+                        value={formData.timeCap.seconds}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          setFormData({
+                            ...formData,
+                            timeCap: { ...formData.timeCap, seconds: value >= 0 && value <= 59 ? value : 0 }
+                          });
+                        }}
+                        style={{width: '100%'}}
+                      />
+                      <small style={{color: '#666', fontSize: '11px'}}>Seconds (0-59)</small>
+                    </div>
+                  </div>
+                  {(formData.timeCap.minutes === 0 && formData.timeCap.seconds === 0) && (
+                    <small style={{color: '#dc3545', fontSize: '12px', marginTop: '4px', display: 'block'}}>
+                      Time cap must be greater than zero for time-based scoring
+                    </small>
+                  )}
+                </div>
+              )}
 
               {maxScore && (
                 <div style={{
