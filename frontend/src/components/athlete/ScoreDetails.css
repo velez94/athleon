@@ -1,0 +1,270 @@
+/* Time-Based Score Details Component */
+
+.time-based-score-details {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Simple Score Display (for non-time-based scores) */
+.score-details-simple {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.score-value-simple {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: 1.25rem;
+}
+
+.score-value-simple .label {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.score-value-simple .value {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* Completion Status Header */
+.completion-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.completion-header.completed {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border-left: 4px solid var(--color-success);
+}
+
+.completion-header.incomplete {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-left: 4px solid var(--color-warning);
+}
+
+.completion-header .status-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.completion-header .status-text {
+  flex: 1;
+}
+
+.completion-header h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.25rem;
+  color: var(--color-text-primary);
+}
+
+.completion-header .completion-time {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.completion-header .total-reps {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-warning);
+}
+
+/* Exercise Breakdown */
+.exercise-breakdown {
+  margin-bottom: var(--spacing-lg);
+}
+
+.exercise-breakdown h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: var(--spacing-sm);
+}
+
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.exercise-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.exercise-item.completed {
+  background: #f0f9f4;
+  border-left: 3px solid var(--color-success);
+}
+
+.exercise-item.incomplete {
+  background: #fff8e1;
+  border-left: 3px solid var(--color-warning);
+}
+
+.exercise-item:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+
+.exercise-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.exercise-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+}
+
+.completion-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.completion-indicator.completed {
+  background: var(--color-success);
+  color: white;
+}
+
+.completion-indicator.incomplete {
+  background: var(--color-warning);
+  color: white;
+}
+
+.exercise-reps {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.reps-completed {
+  color: var(--color-success);
+}
+
+.reps-partial {
+  color: var(--color-warning);
+}
+
+/* Completion Summary */
+.completion-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid #e0e0e0;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .time-based-score-details {
+    padding: var(--spacing-md);
+  }
+
+  .completion-header {
+    padding: var(--spacing-md);
+  }
+
+  .completion-header .status-icon {
+    font-size: 2rem;
+  }
+
+  .completion-header h3 {
+    font-size: 1.125rem;
+  }
+
+  .completion-header .completion-time,
+  .completion-header .total-reps {
+    font-size: 1rem;
+  }
+
+  .exercise-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .exercise-reps {
+    align-self: flex-end;
+  }
+
+  .completion-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .completion-header .status-icon {
+    font-size: 1.75rem;
+  }
+
+  .completion-header h3 {
+    font-size: 1rem;
+  }
+
+  .exercise-name {
+    font-size: 0.875rem;
+  }
+
+  .exercise-reps {
+    font-size: 0.875rem;
+  }
+}
