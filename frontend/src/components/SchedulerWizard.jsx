@@ -654,7 +654,7 @@ const Step3CategoryConfig = ({ config, setConfig, eventData }) => {
   };
 
   // Initialize category heats for categories with athletes
-  React.useEffect(() => {
+  useEffect(() => {
     if (config.competitionMode === 'VERSUS' && eventData.categories.length > 0) {
       const categoriesWithAthletes = eventData.categories.filter(cat => 
         eventData.athletes.filter(a => a.categoryId === cat.categoryId).length > 0

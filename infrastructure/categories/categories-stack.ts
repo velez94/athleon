@@ -3,6 +3,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Construct } from 'constructs';
 import { createBundledLambda } from '../shared/lambda-bundling';
 import { EnvironmentConfig } from '../config/environment-config';
@@ -71,6 +72,29 @@ export class CategoriesStack extends Construct {
 
     // Grant read-only to public Lambda
     this.categoriesTable.grantReadData(this.categoriesPublicLambda);
+
+    // DDD Event Handler - Listens to domain events from other bounded contexts
+    const categoriesEventHandler = createBundledLambda(this, 'CategoriesEventHandler', 'categories', {
+      handler: 'event-handler.handler',
+      layers: [props.sharedLayer.layer],
+      environment: {
+        CATEGORIES_TABLE: this.categoriesTable.tableName,
+      },
+    });
+
+    // Grant write permissions to event handler
+    this.categoriesTable.grantReadWriteData(categoriesEventHandler);
+
+    // EventBridge Rule: Listen to EventCategoriesUpdated from Competitions domain
+    const categoriesUpdateRule = new events.Rule(this, 'EventCategoriesUpdatedRule', {
+      eventBus: props.eventBus, // Central event bus
+      eventPattern: {
+        source: ['competitions.domain'],
+        detailType: ['EventCategoriesUpdated'],
+      },
+    });
+
+    categoriesUpdateRule.addTarget(new targets.LambdaFunction(categoriesEventHandler));
 
     // Outputs
   }

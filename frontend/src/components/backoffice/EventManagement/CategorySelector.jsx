@@ -60,6 +60,20 @@ const CategorySelector = ({ selectedCategories = [], onChange }) => {
     }
   };
 
+  const handleQuotaChange = (categoryId, maxParticipants) => {
+    const useObjectFormat = selectedCategories.length > 0 && 
+                           typeof selectedCategories[0] === 'object' && 
+                           selectedCategories[0] !== null;
+    
+    if (useObjectFormat) {
+      onChange(selectedCategories.map(cat => 
+        (cat.categoryId || cat.id) === categoryId 
+          ? { ...cat, maxParticipants: maxParticipants ? parseInt(maxParticipants) : null }
+          : cat
+      ));
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading categories...</div>;
   }
@@ -128,6 +142,22 @@ const CategorySelector = ({ selectedCategories = [], onChange }) => {
                     </span>
                   )}
                 </div>
+                
+                {isSelected && (
+                  <div className="category-quota" onClick={(e) => e.preventDefault()}>
+                    <label htmlFor={`quota-${category.categoryId}`}>Max Participants:</label>
+                    <input
+                      id={`quota-${category.categoryId}`}
+                      type="number"
+                      value={selectedCategories.find(c => (c.categoryId || c.id) === category.categoryId)?.maxParticipants || ''}
+                      onChange={(e) => handleQuotaChange(category.categoryId, e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="Unlimited"
+                      min="1"
+                      className="quota-input"
+                    />
+                  </div>
+                )}
               </div>
             </label>
           );
@@ -255,6 +285,35 @@ const CategorySelector = ({ selectedCategories = [], onChange }) => {
         .empty-state small {
           font-size: 12px;
           color: #adb5bd;
+        }
+        
+        .category-quota {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid #e9ecef;
+        }
+        
+        .category-quota label {
+          display: block;
+          font-size: 13px;
+          color: #495057;
+          margin-bottom: 6px;
+          font-weight: 500;
+        }
+        
+        .quota-input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #ced4da;
+          border-radius: 6px;
+          font-size: 14px;
+          transition: border-color 0.2s;
+        }
+        
+        .quota-input:focus {
+          outline: none;
+          border-color: #007bff;
+          box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
         }
         
         @media (max-width: 768px) {

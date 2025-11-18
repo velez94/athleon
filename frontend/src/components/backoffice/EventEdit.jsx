@@ -37,15 +37,19 @@ function EventEdit() {
       const eventData = await get(`/competitions/${eventId}`);
       console.log('Fetched event data:', eventData);
       
-      // Use WODs and categories from event record if available (same as EventDetails)
-      const eventWods = eventData.wods || eventData.workouts || [];
-      const eventCategories = eventData.categories || [];
+      // Fetch WODs linked to this event (same as EventDetails)
+      const linkedWods = await get(`/wods?eventId=${eventId}`);
+      const eventWods = linkedWods || [];
+      
+      // Fetch categories for this event
+      const categoriesResponse = await get(`/categories?eventId=${eventId}`);
+      const eventCategories = categoriesResponse || [];
       
       console.log('Event WODs:', eventWods);
       console.log('Event Categories:', eventCategories);
       
       // Convert ISO dates to datetime-local format
-      const _formatDateForInput = (isoDate) => {
+      const formatDateForInput = (isoDate) => {
         if (!isoDate) return '';
         return new Date(isoDate).toISOString().slice(0, 16);
       };
@@ -53,14 +57,14 @@ function EventEdit() {
       setFormData({
         name: eventData.name || '',
         description: eventData.description || '',
-        startDate: formatDateForInput.put(eventData.startDate),
-        endDate: formatDateForInput.put(eventData.endDate),
+        startDate: formatDateForInput(eventData.startDate),
+        endDate: formatDateForInput(eventData.endDate),
         location: eventData.location || '',
         status: eventData.status || 'upcoming',
         published: eventData.published || false,
         publicLeaderboard: eventData.publicLeaderboard || false,
         maxParticipants: eventData.maxParticipants || null,
-        registrationDeadline: formatDateForInput.put(eventData.registrationDeadline),
+        registrationDeadline: formatDateForInput(eventData.registrationDeadline),
         workouts: eventWods,
         categories: eventCategories
       });
@@ -935,6 +939,93 @@ function EventEdit() {
           font-size: 12px;
           opacity: 0.8;
           font-style: italic;
+        }
+        
+        .categories-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 16px;
+        }
+        
+        .category-item-with-quota {
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          padding: 16px;
+          background: white;
+          transition: all 0.2s;
+        }
+        
+        .category-item-with-quota:has(input[type="checkbox"]:checked) {
+          border-color: #007bff;
+          background: #f0f7ff;
+        }
+        
+        .category-main-info {
+          margin-bottom: 0;
+        }
+        
+        .category-checkbox {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        
+        .category-checkbox input[type="checkbox"] {
+          margin-top: 4px;
+          cursor: pointer;
+          width: 18px;
+          height: 18px;
+          flex-shrink: 0;
+        }
+        
+        .category-name {
+          font-weight: 600;
+          font-size: 16px;
+          color: #2c3e50;
+          margin-bottom: 4px;
+        }
+        
+        .category-details {
+          font-size: 13px;
+          color: #6c757d;
+          line-height: 1.4;
+        }
+        
+        .category-quota-settings {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid #e9ecef;
+        }
+        
+        .category-quota-settings label {
+          display: block;
+          font-size: 13px;
+          color: #495057;
+          margin-bottom: 6px;
+          font-weight: 500;
+        }
+        
+        .quota-input {
+          width: 100%;
+          max-width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #ced4da;
+          border-radius: 6px;
+          font-size: 14px;
+          transition: border-color 0.2s;
+          box-sizing: border-box;
+        }
+        
+        .quota-input:focus {
+          outline: none;
+          border-color: #007bff;
+          box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+          .categories-grid {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>

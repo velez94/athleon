@@ -352,7 +352,7 @@ function EventDetails() {
       // Get presigned URL from backend
       const response = await post(`/competitions/${eventId}/upload-url`, {
           fileName: file.name,
-          contentType: file.type
+          fileType: file.type
         });
       
       console.log('Presigned URL response:', response);

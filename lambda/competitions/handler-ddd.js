@@ -198,7 +198,152 @@ exports.handler = async (event) => {
 
     // PUT /competitions/{eventId} - Update event
     if (eventId && pathParts.length === 1 && method === 'PUT') {
-      const updatedEvent = await service.updateEvent(eventId, requestBody, userId);
+      const { categories, wods, workouts, ...eventData } = requestBody;
+      
+      const updatedEvent = await service.updateEvent(eventId, eventData, userId);
+      
+      // Pragmatic DDD: Write synchronously for immediate consistency + publish events for other consumers
+      // This balances DDD principles with user experience requirements
+      const CATEGORIES_TABLE = process.env.CATEGORIES_TABLE;
+      const WODS_TABLE = process.env.WODS_TABLE;
+      const { PutCommand, QueryCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+      
+      // Update categories synchronously
+      if (categories !== undefined && CATEGORIES_TABLE) {
+        const { Items: existingCategories } = await ddb.send(new QueryCommand({
+          TableName: CATEGORIES_TABLE,
+          KeyConditionExpression: 'eventId = :eventId',
+          ExpressionAttributeValues: { ':eventId': eventId }
+        }));
+        
+        const existingCategoryIds = new Set((existingCategories || []).map(c => c.categoryId));
+        const newCategoryIds = new Set(categories.map(c => typeof c === 'object' ? c.categoryId : c));
+        
+        // Delete removed categories
+        for (const existing of (existingCategories || [])) {
+          if (!newCategoryIds.has(existing.categoryId)) {
+            await ddb.send(new DeleteCommand({
+              TableName: CATEGORIES_TABLE,
+              Key: { eventId, categoryId: existing.categoryId }
+            }));
+          }
+        }
+        
+        // Add or update selected categories
+        for (const category of categories) {
+          if (typeof category === 'object' && category.categoryId) {
+            await ddb.send(new PutCommand({
+              TableName: CATEGORIES_TABLE,
+              Item: {
+                eventId,
+                categoryId: category.categoryId,
+                name: category.name,
+                description: category.description || '',
+                gender: category.gender || null,
+                minAge: category.minAge || null,
+                maxAge: category.maxAge || null,
+                maxParticipants: category.maxParticipants || null,
+                createdAt: existingCategoryIds.has(category.categoryId)
+                  ? (existingCategories.find(c => c.categoryId === category.categoryId)?.createdAt || new Date().toISOString())
+                  : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
+            }));
+          }
+        }
+      }
+      
+      // Update WODs synchronously
+      const wodsToSave = wods || workouts;
+      if (wodsToSave !== undefined && WODS_TABLE) {
+        const { Items: existingWods } = await ddb.send(new QueryCommand({
+          TableName: WODS_TABLE,
+          KeyConditionExpression: 'eventId = :eventId',
+          ExpressionAttributeValues: { ':eventId': eventId }
+        }));
+        
+        const existingWodIds = new Set((existingWods || []).map(w => w.wodId));
+        const newWodIds = new Set(wodsToSave.map(w => typeof w === 'object' ? w.wodId : w));
+        
+        // Delete removed WODs
+        for (const existing of (existingWods || [])) {
+          if (!newWodIds.has(existing.wodId)) {
+            await ddb.send(new DeleteCommand({
+              TableName: WODS_TABLE,
+              Key: { eventId, wodId: existing.wodId }
+            }));
+          }
+        }
+        
+        // Add or update selected WODs
+        for (const wod of wodsToSave) {
+          if (typeof wod === 'object' && wod.wodId) {
+            await ddb.send(new PutCommand({
+              TableName: WODS_TABLE,
+              Item: {
+                eventId,
+                wodId: wod.wodId,
+                name: wod.name,
+                description: wod.description || '',
+                format: wod.format || '',
+                timeLimit: wod.timeLimit || null,
+                timeCap: wod.timeCap || null,
+                movements: wod.movements || [],
+                scoringType: wod.scoringType || null,
+                createdAt: existingWodIds.has(wod.wodId)
+                  ? (existingWods.find(w => w.wodId === wod.wodId)?.createdAt || new Date().toISOString())
+                  : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }
+            }));
+          }
+        }
+      }
+      
+      // Also publish domain events for other consumers (audit, analytics, etc.)
+      const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge');
+      const eventBridge = new EventBridgeClient({});
+      const CENTRAL_EVENT_BUS = process.env.CENTRAL_EVENT_BUS || 'default';
+      
+      const domainEvents = [];
+      
+      if (categories !== undefined) {
+        domainEvents.push({
+          Source: 'competitions.domain',
+          DetailType: 'EventCategoriesUpdated',
+          Detail: JSON.stringify({
+            eventId,
+            categories: categories || [],
+            updatedBy: userId,
+            timestamp: new Date().toISOString()
+          }),
+          EventBusName: CENTRAL_EVENT_BUS
+        });
+      }
+      
+      if (wodsToSave !== undefined) {
+        domainEvents.push({
+          Source: 'competitions.domain',
+          DetailType: 'EventWodsUpdated',
+          Detail: JSON.stringify({
+            eventId,
+            wods: wodsToSave || [],
+            updatedBy: userId,
+            timestamp: new Date().toISOString()
+          }),
+          EventBusName: CENTRAL_EVENT_BUS
+        });
+      }
+      
+      // Publish events asynchronously (fire and forget for audit/analytics)
+      if (domainEvents.length > 0) {
+        eventBridge.send(new PutEventsCommand({
+          Entries: domainEvents
+        })).catch(error => {
+          logger.error('Failed to publish domain events', { error: error.message });
+        });
+      }
+      
       return createResponse(200, updatedEvent.toObject(), origin);
     }
 
@@ -263,7 +408,13 @@ exports.handler = async (event) => {
       
       try {
         const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
-        const imageUrl = `https://${EVENT_IMAGES_BUCKET}.s3.amazonaws.com/${key}`;
+        
+        // Use CloudFront domain if available, otherwise fall back to S3 URL
+        // CloudFront serves images from /images/* path which gets rewritten to S3 root
+        const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
+        const imageUrl = CLOUDFRONT_DOMAIN 
+          ? `${CLOUDFRONT_DOMAIN}/images/${key}`
+          : `https://${EVENT_IMAGES_BUCKET}.s3.amazonaws.com/${key}`;
         
         return createResponse(200, { uploadUrl, imageUrl }, origin);
       } catch (error) {

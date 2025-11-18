@@ -3,6 +3,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Construct } from 'constructs';
 import { createBundledLambda } from '../shared/lambda-bundling';
 import { EnvironmentConfig } from '../config/environment-config';
@@ -80,6 +81,29 @@ export class WodsStack extends Construct {
 
     // Grant read-only to public Lambda
     this.wodsTable.grantReadData(this.wodsPublicLambda);
+
+    // DDD Event Handler - Listens to domain events from other bounded contexts
+    const wodsEventHandler = createBundledLambda(this, 'WodsEventHandler', 'wods', {
+      handler: 'event-handler.handler',
+      layers: [props.sharedLayer.layer],
+      environment: {
+        WODS_TABLE: this.wodsTable.tableName,
+      },
+    });
+
+    // Grant write permissions to event handler
+    this.wodsTable.grantReadWriteData(wodsEventHandler);
+
+    // EventBridge Rule: Listen to EventWodsUpdated from Competitions domain
+    const wodsUpdateRule = new events.Rule(this, 'EventWodsUpdatedRule', {
+      eventBus: props.eventBus, // Central event bus
+      eventPattern: {
+        source: ['competitions.domain'],
+        detailType: ['EventWodsUpdated'],
+      },
+    });
+
+    wodsUpdateRule.addTarget(new targets.LambdaFunction(wodsEventHandler));
 
     // Outputs
   }

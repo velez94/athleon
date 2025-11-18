@@ -87,8 +87,10 @@ export class CompetitionsStack extends Construct {
     props.organizationEventsTable.grantReadWriteData(this.competitionsDddLambda);
     props.organizationMembersTable.grantReadData(this.competitionsDddLambda);
     props.scoringSystemsTable.grantReadData(this.competitionsDddLambda);
-    if (props.categoriesTable) props.categoriesTable.grantReadData(this.competitionsDddLambda);
-    if (props.wodsTable) props.wodsTable.grantReadData(this.competitionsDddLambda);
+    // Pragmatic DDD: Write access for immediate consistency + events for other consumers
+    // This balances DDD principles with user experience requirements
+    if (props.categoriesTable) props.categoriesTable.grantReadWriteData(this.competitionsDddLambda);
+    if (props.wodsTable) props.wodsTable.grantReadWriteData(this.competitionsDddLambda);
     if (props.athleteEventsTable) props.athleteEventsTable.grantReadData(this.competitionsDddLambda);
     this.competitionsEventBus.grantPutEventsTo(this.competitionsDddLambda);
     props.eventBus.grantPutEventsTo(this.competitionsDddLambda);
