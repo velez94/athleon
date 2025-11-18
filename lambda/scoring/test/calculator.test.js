@@ -45,18 +45,18 @@ describe('Score Calculator', () => {
     it('should calculate score for fully completed WOD', () => {
       const scoringSystem = {
         type: 'time-based',
-        config: { timeCap: { minutes: 10, seconds: 0 } }
+        config: {}
       };
       const rawData = {
         exercises: [
           { exerciseId: 'ex-1', exerciseName: 'Pull Ups', completed: true, reps: 50 },
           { exerciseId: 'ex-2', exerciseName: 'Push Ups', completed: true, reps: 100 }
         ],
-        completionTime: '08:45',
-        timeCap: '10:00'
+        completionTime: '08:45'
       };
+      const wodTimeCap = '10:00';
       
-      const result = calculateScore(rawData, scoringSystem);
+      const result = calculateScore(rawData, scoringSystem, wodTimeCap);
       
       expect(result.calculatedScore).toBe('08:45');
       expect(result.breakdown.allCompleted).toBe(true);
@@ -69,18 +69,18 @@ describe('Score Calculator', () => {
     it('should calculate score for incomplete WOD with mixed completion status', () => {
       const scoringSystem = {
         type: 'time-based',
-        config: { timeCap: { minutes: 10, seconds: 0 } }
+        config: {}
       };
       const rawData = {
         exercises: [
           { exerciseId: 'ex-1', exerciseName: 'Pull Ups', completed: true, reps: 50 },
           { exerciseId: 'ex-2', exerciseName: 'Push Ups', completed: false, reps: 100, maxReps: 75 }
         ],
-        completionTime: '10:00',
-        timeCap: '10:00'
+        completionTime: '10:00'
       };
+      const wodTimeCap = '10:00';
       
-      const result = calculateScore(rawData, scoringSystem);
+      const result = calculateScore(rawData, scoringSystem, wodTimeCap);
       
       expect(result.calculatedScore).toBe(125); // 50 + 75
       expect(result.breakdown.allCompleted).toBe(false);
@@ -92,17 +92,17 @@ describe('Score Calculator', () => {
     it('should handle zero maxReps for incomplete exercise', () => {
       const scoringSystem = {
         type: 'time-based',
-        config: { timeCap: { minutes: 10, seconds: 0 } }
+        config: {}
       };
       const rawData = {
         exercises: [
           { exerciseId: 'ex-1', exerciseName: 'Pull Ups', completed: false, reps: 50, maxReps: 0 }
         ],
-        completionTime: '10:00',
-        timeCap: '10:00'
+        completionTime: '10:00'
       };
+      const wodTimeCap = '10:00';
       
-      const result = calculateScore(rawData, scoringSystem);
+      const result = calculateScore(rawData, scoringSystem, wodTimeCap);
       
       expect(result.calculatedScore).toBe(0);
       expect(result.breakdown.allCompleted).toBe(false);
@@ -113,7 +113,7 @@ describe('Score Calculator', () => {
     it('should handle all exercises incomplete', () => {
       const scoringSystem = {
         type: 'time-based',
-        config: { timeCap: { minutes: 10, seconds: 0 } }
+        config: {}
       };
       const rawData = {
         exercises: [
@@ -121,11 +121,11 @@ describe('Score Calculator', () => {
           { exerciseId: 'ex-2', exerciseName: 'Push Ups', completed: false, reps: 100, maxReps: 60 },
           { exerciseId: 'ex-3', exerciseName: 'Squats', completed: false, reps: 75, maxReps: 40 }
         ],
-        completionTime: '10:00',
-        timeCap: '10:00'
+        completionTime: '10:00'
       };
+      const wodTimeCap = '10:00';
       
-      const result = calculateScore(rawData, scoringSystem);
+      const result = calculateScore(rawData, scoringSystem, wodTimeCap);
       
       expect(result.calculatedScore).toBe(130); // 30 + 60 + 40
       expect(result.breakdown.allCompleted).toBe(false);
@@ -137,17 +137,17 @@ describe('Score Calculator', () => {
     it('should handle single exercise WOD', () => {
       const scoringSystem = {
         type: 'time-based',
-        config: { timeCap: { minutes: 5, seconds: 0 } }
+        config: {}
       };
       const rawData = {
         exercises: [
           { exerciseId: 'ex-1', exerciseName: 'Burpees', completed: true, reps: 100 }
         ],
-        completionTime: '04:30',
-        timeCap: '05:00'
+        completionTime: '04:30'
       };
+      const wodTimeCap = '05:00';
       
-      const result = calculateScore(rawData, scoringSystem);
+      const result = calculateScore(rawData, scoringSystem, wodTimeCap);
       
       expect(result.calculatedScore).toBe('04:30');
       expect(result.breakdown.allCompleted).toBe(true);
@@ -159,7 +159,7 @@ describe('Score Calculator', () => {
     it('should handle missing maxReps as zero for incomplete exercise', () => {
       const scoringSystem = {
         type: 'time-based',
-        config: { timeCap: { minutes: 10, seconds: 0 } }
+        config: {}
       };
       const rawData = {
         exercises: [
@@ -167,11 +167,11 @@ describe('Score Calculator', () => {
           { exerciseId: 'ex-2', exerciseName: 'Push Ups', completed: false, reps: 100 }
           // maxReps is missing
         ],
-        completionTime: '10:00',
-        timeCap: '10:00'
+        completionTime: '10:00'
       };
+      const wodTimeCap = '10:00';
       
-      const result = calculateScore(rawData, scoringSystem);
+      const result = calculateScore(rawData, scoringSystem, wodTimeCap);
       
       expect(result.calculatedScore).toBe(50); // 50 + 0 (missing maxReps treated as 0)
       expect(result.breakdown.allCompleted).toBe(false);
@@ -182,18 +182,18 @@ describe('Score Calculator', () => {
     it('should include exercise breakdown with all details', () => {
       const scoringSystem = {
         type: 'time-based',
-        config: { timeCap: { minutes: 10, seconds: 0 } }
+        config: {}
       };
       const rawData = {
         exercises: [
           { exerciseId: 'ex-1', exerciseName: 'Pull Ups', completed: true, reps: 50 },
           { exerciseId: 'ex-2', exerciseName: 'Push Ups', completed: false, reps: 100, maxReps: 75 }
         ],
-        completionTime: '10:00',
-        timeCap: '10:00'
+        completionTime: '10:00'
       };
+      const wodTimeCap = '10:00';
       
-      const result = calculateScore(rawData, scoringSystem);
+      const result = calculateScore(rawData, scoringSystem, wodTimeCap);
       
       expect(result.breakdown.exercises).toHaveLength(2);
       expect(result.breakdown.exercises[0]).toEqual({

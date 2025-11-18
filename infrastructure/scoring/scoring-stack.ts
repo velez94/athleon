@@ -12,6 +12,7 @@ export interface ScoringStackProps  {
   stage: string;
   eventBus: events.EventBus;
   sharedLayer: AthleonSharedLayer;
+  wodsTable?: dynamodb.Table;  // Cross-context read-only access for time cap validation
 }
 
 export class ScoringStack extends Construct {
@@ -87,6 +88,7 @@ export class ScoringStack extends Construct {
         SCORING_SYSTEMS_TABLE: this.scoringSystemsTable.tableName,
         DOMAIN_EVENT_BUS: this.scoringEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+        ...(props.wodsTable && { WODS_TABLE: props.wodsTable.tableName }),
       },
     });
 
@@ -94,6 +96,11 @@ export class ScoringStack extends Construct {
     this.scoringSystemsTable.grantReadData(this.scoresLambda);
     this.scoringEventBus.grantPutEventsTo(this.scoresLambda);
     props.eventBus.grantPutEventsTo(this.scoresLambda);
+    
+    // Cross-context read-only access: Scoring reads WOD time cap for validation
+    if (props.wodsTable) {
+      props.wodsTable.grantReadData(this.scoresLambda);
+    }
 
     // Leaderboard API Lambda
     const leaderboardLambda = new lambda.Function(this, 'LeaderboardLambda', {

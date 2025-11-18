@@ -10,6 +10,7 @@ const WODS_TABLE = process.env.WODS_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 const ORGANIZATION_MEMBERS_TABLE = process.env.ORGANIZATION_MEMBERS_TABLE;
 const SCORES_TABLE = process.env.SCORES_TABLE;
+const SCORING_SYSTEMS_TABLE = process.env.SCORING_SYSTEMS_TABLE;
 const AUTHORIZATION_API = process.env.AUTHORIZATION_API || 'https://api.dev.athleon.fitness/authorization';
 
 // Check authorization via API (DDD-compliant)
@@ -504,6 +505,54 @@ exports.handler = async (event) => {
         };
       }
       
+      // Validate time cap for time-based scoring systems
+      if (body.scoringSystemId) {
+        try {
+          const { Item: scoringSystem } = await ddb.send(new GetCommand({
+            TableName: SCORING_SYSTEMS_TABLE,
+            Key: { eventId: body.eventId || 'template', scoringSystemId: body.scoringSystemId }
+          }));
+          
+          if (scoringSystem && scoringSystem.type === 'time-based') {
+            // Time cap is required for time-based scoring
+            if (!body.timeCap || body.timeCap.minutes === undefined || body.timeCap.seconds === undefined) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                  message: 'Time cap is required for WODs using time-based scoring system'
+                })
+              };
+            }
+            
+            // Validate time cap values
+            if (body.timeCap.minutes < 0 || body.timeCap.seconds < 0 || body.timeCap.seconds > 59) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                  message: 'Invalid time cap values. Minutes must be >= 0, seconds must be 0-59'
+                })
+              };
+            }
+            
+            const totalSeconds = body.timeCap.minutes * 60 + body.timeCap.seconds;
+            if (totalSeconds <= 0) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                  message: 'Time cap must be greater than zero'
+                })
+              };
+            }
+          }
+        } catch (error) {
+          logger.error('Error fetching scoring system for validation:', error);
+          // Continue with WOD creation even if scoring system fetch fails
+        }
+      }
+      
       // Create WOD data
       const wodData = {
         eventId: body.eventId || 'template',
@@ -517,10 +566,19 @@ exports.handler = async (event) => {
         isShared: body.isShared || false,
         isTransversal: body.isTransversal || false,
         organizationId: body.organizationId || null,
+        scoringSystemId: body.scoringSystemId || null,
         createdBy: userId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+      
+      // Add time cap if provided (for time-based scoring systems)
+      if (body.timeCap) {
+        wodData.timeCap = {
+          minutes: body.timeCap.minutes,
+          seconds: body.timeCap.seconds
+        };
+      }
       
       // If creating for an event, get organization ID
       if (body.eventId && body.eventId !== 'template') {
@@ -638,12 +696,18 @@ exports.handler = async (event) => {
           timeLimit: sourceWod.timeLimit || '',
           movements: sourceWod.movements || [],
           categoryId: sourceWod.categoryId || '',
+          scoringSystemId: sourceWod.scoringSystemId || null,
           createdBy: sourceWod.createdBy,
           isShared: false, // Event-specific copy is not shared
           isTransversal: false,
           createdAt: sourceWod.createdAt,
           updatedAt: new Date().toISOString()
         };
+        
+        // Copy time cap if present (for time-based scoring systems)
+        if (sourceWod.timeCap) {
+          newWod.timeCap = sourceWod.timeCap;
+        }
         
         await ddb.send(new PutCommand({
           TableName: WODS_TABLE,
@@ -671,6 +735,54 @@ exports.handler = async (event) => {
           headers,
           body: JSON.stringify({ message: 'Access denied - not WOD owner' })
         };
+      }
+      
+      // Validate time cap for time-based scoring systems
+      if (body.scoringSystemId) {
+        try {
+          const { Item: scoringSystem } = await ddb.send(new GetCommand({
+            TableName: SCORING_SYSTEMS_TABLE,
+            Key: { eventId: wod.eventId, scoringSystemId: body.scoringSystemId }
+          }));
+          
+          if (scoringSystem && scoringSystem.type === 'time-based') {
+            // Time cap is required for time-based scoring
+            if (!body.timeCap || body.timeCap.minutes === undefined || body.timeCap.seconds === undefined) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                  message: 'Time cap is required for WODs using time-based scoring system'
+                })
+              };
+            }
+            
+            // Validate time cap values
+            if (body.timeCap.minutes < 0 || body.timeCap.seconds < 0 || body.timeCap.seconds > 59) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                  message: 'Invalid time cap values. Minutes must be >= 0, seconds must be 0-59'
+                })
+              };
+            }
+            
+            const totalSeconds = body.timeCap.minutes * 60 + body.timeCap.seconds;
+            if (totalSeconds <= 0) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                  message: 'Time cap must be greater than zero'
+                })
+              };
+            }
+          }
+        } catch (error) {
+          logger.error('Error fetching scoring system for validation:', error);
+          // Continue with WOD update even if scoring system fetch fails
+        }
       }
       
       // Update WOD
@@ -707,6 +819,14 @@ exports.handler = async (event) => {
       if (body.isShared !== undefined) {
         updateExpression.push('isShared = :isShared');
         expressionAttributeValues[':isShared'] = body.isShared;
+      }
+      if (body.scoringSystemId !== undefined) {
+        updateExpression.push('scoringSystemId = :scoringSystemId');
+        expressionAttributeValues[':scoringSystemId'] = body.scoringSystemId;
+      }
+      if (body.timeCap !== undefined) {
+        updateExpression.push('timeCap = :timeCap');
+        expressionAttributeValues[':timeCap'] = body.timeCap;
       }
       
       // Always update the updatedAt timestamp

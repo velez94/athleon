@@ -129,7 +129,13 @@ export class AthleonStack extends cdk.Stack {
       organizationEventsTable: organizationsStack.organizationEventsTable,
       organizationMembersTable: organizationsStack.organizationMembersTable,
       scoresTable: scoringStack.scoresTable,
+      scoringSystemsTable: scoringStack.scoringSystemsTable,  // Cross-context read for validation
     });
+    
+    // Configure cross-context read permissions (DDD pattern: read-only access)
+    // Scoring context reads WOD time cap for score validation
+    wodsStack.wodsTable.grantReadData(scoringStack.scoresLambda);
+    scoringStack.scoresLambda.addEnvironment('WODS_TABLE', wodsStack.wodsTable.tableName);
 
     const athletesStack = new AthletesStack(this, 'Athletes', {
       stage: props.stage,

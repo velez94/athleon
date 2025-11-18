@@ -11,11 +11,7 @@ function ScoringSystemManager({ eventId }) {
     type: 'classic',
     config: {
       baseScore: 100,
-      decrement: 1,
-      timeCap: {
-        minutes: 10,
-        seconds: 0
-      }
+      decrement: 1
     }
   });
 
@@ -52,23 +48,6 @@ useEffect(() => {
       newErrors.name = 'Name is required';
     }
     
-    if (formData.type === 'time-based') {
-      const minutes = formData.config.timeCap.minutes;
-      const seconds = formData.config.timeCap.seconds;
-      
-      if (minutes < 0 || !Number.isInteger(minutes)) {
-        newErrors.minutes = 'Minutes must be a positive integer';
-      }
-      
-      if (seconds < 0 || seconds > 59 || !Number.isInteger(seconds)) {
-        newErrors.seconds = 'Seconds must be between 0 and 59';
-      }
-      
-      if (minutes === 0 && seconds === 0) {
-        newErrors.timeCap = 'Time cap must be greater than 0';
-      }
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -86,7 +65,7 @@ useEffect(() => {
         name: formData.name,
         type: formData.type,
         config: formData.type === 'time-based' 
-          ? { timeCap: formData.config.timeCap }
+          ? {}  // No global config for time-based - time cap configured per WOD
           : formData.type === 'classic'
           ? { baseScore: formData.config.baseScore, decrement: formData.config.decrement }
           : {}
@@ -102,11 +81,7 @@ useEffect(() => {
         type: 'classic',
         config: {
           baseScore: 100,
-          decrement: 1,
-          timeCap: {
-            minutes: 10,
-            seconds: 0
-          }
+          decrement: 1
         }
       });
       fetchScoringSystems();
@@ -122,11 +97,7 @@ useEffect(() => {
       type: newType,
       config: {
         baseScore: 100,
-        decrement: 1,
-        timeCap: {
-          minutes: 10,
-          seconds: 0
-        }
+        decrement: 1
       }
     });
     setErrors({});
@@ -223,84 +194,24 @@ useEffect(() => {
           )}
 
           {formData.type === 'time-based' && (
-            <div style={{marginBottom: '15px'}}>
-              <label style={{display: 'block', marginBottom: '5px'}}>
-                Time Cap <span style={{color: '#dc3545'}}>*</span>
-              </label>
-              <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-                <div style={{flex: 1}}>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.config.timeCap.minutes}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
-                      setFormData({
-                        ...formData,
-                        config: {
-                          ...formData.config,
-                          timeCap: {...formData.config.timeCap, minutes: value}
-                        }
-                      });
-                      setErrors({...errors, minutes: null, timeCap: null});
-                    }}
-                    placeholder="Minutes"
-                    style={{
-                      width: '100%', 
-                      padding: '8px', 
-                      borderRadius: '4px', 
-                      border: errors.minutes || errors.timeCap ? '1px solid #dc3545' : '1px solid #ddd'
-                    }}
-                  />
-                  <small style={{color: '#6c757d', display: 'block', marginTop: '4px'}}>Minutes</small>
-                  {errors.minutes && (
-                    <small style={{color: '#dc3545', display: 'block', marginTop: '4px'}}>
-                      {errors.minutes}
-                    </small>
-                  )}
-                </div>
-                <span style={{fontSize: '20px', fontWeight: 'bold'}}>:</span>
-                <div style={{flex: 1}}>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={formData.config.timeCap.seconds}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 0;
-                      setFormData({
-                        ...formData,
-                        config: {
-                          ...formData.config,
-                          timeCap: {...formData.config.timeCap, seconds: value}
-                        }
-                      });
-                      setErrors({...errors, seconds: null, timeCap: null});
-                    }}
-                    placeholder="Seconds"
-                    style={{
-                      width: '100%', 
-                      padding: '8px', 
-                      borderRadius: '4px', 
-                      border: errors.seconds || errors.timeCap ? '1px solid #dc3545' : '1px solid #ddd'
-                    }}
-                  />
-                  <small style={{color: '#6c757d', display: 'block', marginTop: '4px'}}>Seconds</small>
-                  {errors.seconds && (
-                    <small style={{color: '#dc3545', display: 'block', marginTop: '4px'}}>
-                      {errors.seconds}
-                    </small>
-                  )}
+            <div style={{
+              marginBottom: '15px',
+              padding: '15px',
+              background: '#e3f2fd',
+              border: '1px solid #2196f3',
+              borderRadius: '6px',
+              color: '#1565c0'
+            }}>
+              <div style={{display: 'flex', alignItems: 'start', gap: '10px'}}>
+                <span style={{fontSize: '20px'}}>ℹ️</span>
+                <div>
+                  <strong style={{display: 'block', marginBottom: '5px'}}>Time Cap Configuration</strong>
+                  <p style={{margin: 0, lineHeight: '1.5'}}>
+                    Time caps are configured individually for each WOD when you assign this scoring system. 
+                    This allows different WODs to have different time limits while using the same scoring system.
+                  </p>
                 </div>
               </div>
-              {errors.timeCap && (
-                <small style={{color: '#dc3545', display: 'block', marginTop: '4px'}}>
-                  {errors.timeCap}
-                </small>
-              )}
-              <small style={{color: '#6c757d', display: 'block', marginTop: '8px'}}>
-                Maximum time allowed to complete the WOD
-              </small>
             </div>
           )}
 
@@ -375,10 +286,9 @@ useEffect(() => {
                       Base: {system.config.baseScore} | Decrement: {system.config.decrement}
                     </p>
                   )}
-                  {system.type === 'time-based' && system.config?.timeCap && (
-                    <p style={{marginTop: '10px', color: '#666'}}>
-                      ⏱️ Time Cap: {system.config.timeCap.minutes}:
-                      {String(system.config.timeCap.seconds).padStart(2, '0')}
+                  {system.type === 'time-based' && (
+                    <p style={{marginTop: '10px', color: '#666', fontStyle: 'italic'}}>
+                      Time caps configured per WOD
                     </p>
                   )}
                 </div>

@@ -14,6 +14,7 @@ const eventBridge = new EventBridgeClient({});
 
 const SCORES_TABLE = process.env.SCORES_TABLE;
 const SCORING_SYSTEMS_TABLE = process.env.SCORING_SYSTEMS_TABLE;
+const WODS_TABLE = process.env.WODS_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 const ORGANIZATION_MEMBERS_TABLE = process.env.ORGANIZATION_MEMBERS_TABLE;
 
@@ -78,8 +79,8 @@ async function emitScoreEvent(eventType, scoreData) {
 }
 
 // Validate time-based score submission
-function validateTimeBasedScore(rawData, scoringSystem) {
-  const { exercises, completionTime, timeCap } = rawData;
+function validateTimeBasedScore(rawData, scoringSystem, wodTimeCap) {
+  const { exercises, completionTime } = rawData;
   const errors = [];
 
   // Validate all exercises have completion status (boolean)
@@ -108,14 +109,9 @@ function validateTimeBasedScore(rawData, scoringSystem) {
     errors.push('Invalid time format. Use mm:ss (e.g., 10:00)');
   }
 
-  // Validate time cap format if provided
-  if (timeCap && !isValidTimeFormat(timeCap)) {
-    errors.push('Invalid time cap format. Use mm:ss (e.g., 10:00)');
-  }
-
-  // Validate completion time doesn't exceed time cap
-  if (completionTime && timeCap && exceedsTimeCap(completionTime, timeCap)) {
-    errors.push(`Completion time (${completionTime}) cannot exceed time cap (${timeCap})`);
+  // Validate completion time doesn't exceed WOD time cap
+  if (completionTime && wodTimeCap && exceedsTimeCap(completionTime, wodTimeCap)) {
+    errors.push(`Completion time (${completionTime}) cannot exceed time cap (${wodTimeCap})`);
   }
 
   return {
@@ -248,9 +244,43 @@ exports.handler = async (event) => {
         }));
         
         if (scoringSystem) {
+          let wodTimeCap = null;
+          
+          // For time-based scoring, fetch WOD to get time cap
+          if (scoringSystem.type === 'time-based' && body.wodId) {
+            try {
+              const { Item: wod } = await ddb.send(new GetCommand({
+                TableName: WODS_TABLE,
+                Key: { eventId: body.eventId, wodId: body.wodId }
+              }));
+              
+              if (wod && wod.timeCap) {
+                // Convert time cap to mm:ss format for validation
+                wodTimeCap = `${wod.timeCap.minutes}:${String(wod.timeCap.seconds).padStart(2, '0')}`;
+              } else {
+                return {
+                  statusCode: 400,
+                  headers,
+                  body: JSON.stringify({
+                    message: 'WOD must have time cap configured for time-based scoring'
+                  })
+                };
+              }
+            } catch (error) {
+              logger.error('Error fetching WOD for time cap:', error);
+              return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({
+                  message: 'Error fetching WOD configuration'
+                })
+              };
+            }
+          }
+          
           // Validate time-based score submission
           if (scoringSystem.type === 'time-based') {
-            const validation = validateTimeBasedScore(body.rawData, scoringSystem);
+            const validation = validateTimeBasedScore(body.rawData, scoringSystem, wodTimeCap);
             if (!validation.valid) {
               return {
                 statusCode: 400,
@@ -263,7 +293,7 @@ exports.handler = async (event) => {
             }
           }
           
-          const result = calculateScore(body.rawData, scoringSystem);
+          const result = calculateScore(body.rawData, scoringSystem, wodTimeCap);
           calculatedScore = result.calculatedScore;
           breakdown = result.breakdown;
         }
@@ -416,9 +446,43 @@ exports.handler = async (event) => {
         }));
         
         if (scoringSystem) {
+          let wodTimeCap = null;
+          
+          // For time-based scoring, fetch WOD to get time cap
+          if (scoringSystem.type === 'time-based' && body.wodId) {
+            try {
+              const { Item: wod } = await ddb.send(new GetCommand({
+                TableName: WODS_TABLE,
+                Key: { eventId, wodId: body.wodId }
+              }));
+              
+              if (wod && wod.timeCap) {
+                // Convert time cap to mm:ss format for validation
+                wodTimeCap = `${wod.timeCap.minutes}:${String(wod.timeCap.seconds).padStart(2, '0')}`;
+              } else {
+                return {
+                  statusCode: 400,
+                  headers: getCorsHeaders(event),
+                  body: JSON.stringify({
+                    message: 'WOD must have time cap configured for time-based scoring'
+                  })
+                };
+              }
+            } catch (error) {
+              console.error('Error fetching WOD for time cap:', error);
+              return {
+                statusCode: 500,
+                headers: getCorsHeaders(event),
+                body: JSON.stringify({
+                  message: 'Error fetching WOD configuration'
+                })
+              };
+            }
+          }
+          
           // Validate time-based score submission
           if (scoringSystem.type === 'time-based') {
-            const validation = validateTimeBasedScore(body.rawData, scoringSystem);
+            const validation = validateTimeBasedScore(body.rawData, scoringSystem, wodTimeCap);
             if (!validation.valid) {
               return {
                 statusCode: 400,
@@ -431,7 +495,7 @@ exports.handler = async (event) => {
             }
           }
           
-          const result = calculateScore(body.rawData, scoringSystem);
+          const result = calculateScore(body.rawData, scoringSystem, wodTimeCap);
           calculatedScore = result.calculatedScore;
           breakdown = result.breakdown;
         }

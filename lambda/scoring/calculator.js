@@ -4,13 +4,13 @@
 // Import time utilities
 const { parseTimeToSeconds, formatSecondsToTime } = require('./utils');
 
-exports.calculateScore = (rawData, scoringSystem) => {
+exports.calculateScore = (rawData, scoringSystem, wodTimeCap) => {
   if (scoringSystem.type === 'classic') {
     return calculateClassicScore(rawData, scoringSystem.config);
   } else if (scoringSystem.type === 'advanced') {
     return calculateAdvancedScore(rawData, scoringSystem.config);
   } else if (scoringSystem.type === 'time-based') {
-    return calculateTimeBasedScore(rawData, scoringSystem.config);
+    return calculateTimeBasedScore(rawData, scoringSystem.config, wodTimeCap);
   }
   
   throw new Error(`Unknown scoring system type: ${scoringSystem.type}`);
@@ -98,8 +98,8 @@ function calculateAdvancedScore(rawData, config) {
   };
 }
 
-function calculateTimeBasedScore(rawData, config) {
-  const { exercises, completionTime, timeCap } = rawData;
+function calculateTimeBasedScore(rawData, config, wodTimeCap) {
+  const { exercises, completionTime } = rawData;
   
   // Determine if all exercises are completed
   const allCompleted = exercises.every(ex => ex.completed === true);
@@ -115,7 +115,8 @@ function calculateTimeBasedScore(rawData, config) {
   const completedCount = exercises.filter(ex => ex.completed).length;
   
   // Determine the final completion time
-  const finalCompletionTime = allCompleted ? completionTime : timeCap;
+  // Use WOD time cap from WOD configuration (passed as parameter)
+  const finalCompletionTime = allCompleted ? completionTime : wodTimeCap;
   
   // Generate breakdown object with exercise-level completion details
   const exerciseBreakdown = exercises.map(ex => ({

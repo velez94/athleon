@@ -16,6 +16,7 @@ export interface WodsStackProps  {
   organizationEventsTable: dynamodb.Table;
   organizationMembersTable: dynamodb.Table;
   scoresTable: dynamodb.Table;
+  scoringSystemsTable?: dynamodb.Table;  // Cross-context read-only access for scoring system type validation
 }
 
 export class WodsStack extends Construct {
@@ -52,6 +53,7 @@ export class WodsStack extends Construct {
         DOMAIN_EVENT_BUS: this.wodsEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
         ...props.config.lambda.environment,
+        ...(props.scoringSystemsTable && { SCORING_SYSTEMS_TABLE: props.scoringSystemsTable.tableName }),
       },
     });
 
@@ -70,6 +72,11 @@ export class WodsStack extends Construct {
     props.scoresTable.grantReadData(this.wodsLambda);
     this.wodsEventBus.grantPutEventsTo(this.wodsLambda);
     props.eventBus.grantPutEventsTo(this.wodsLambda);
+    
+    // Cross-context read-only access: WOD reads scoring system type for validation
+    if (props.scoringSystemsTable) {
+      props.scoringSystemsTable.grantReadData(this.wodsLambda);
+    }
 
     // Grant read-only to public Lambda
     this.wodsTable.grantReadData(this.wodsPublicLambda);
