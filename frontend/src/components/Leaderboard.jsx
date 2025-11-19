@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del } from '../lib/api';
+import { useOrganization } from '../contexts/OrganizationContext';
 
 function Leaderboard() {
+  const { selectedOrganization } = useOrganization();
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState('');
   const [selectedDivision, setSelectedDivision] = useState('');
@@ -11,8 +13,10 @@ function Leaderboard() {
   const divisions = ['Male RX', 'Female RX', 'Male Scaled', 'Female Scaled'];
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (selectedOrganization) {
+      fetchEvents();
+    }
+  }, [selectedOrganization]);
 
   useEffect(() => {
     if (selectedEvent) {
@@ -22,7 +26,7 @@ function Leaderboard() {
 
   const fetchEvents = async () => {
     try {
-      const response = await get('/events');
+      const response = await get(`/competitions?organizationId=${selectedOrganization.organizationId}`);
       setEvents(response);
       if (response.length > 0) {
         setSelectedEvent(response[0].eventId);

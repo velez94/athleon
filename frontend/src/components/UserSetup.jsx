@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { get } from 'aws-amplify/api';
+import { get, post } from 'aws-amplify/api';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { useTranslation } from 'react-i18next';
 import CategorySelection from './CategorySelection';
 import AthleteProfile from './AthleteProfile';
@@ -22,35 +23,58 @@ function UserSetup({ user, signOut }) {
 
   const checkUserSetup = async () => {
     try {
-      // Check if user already has a profile with category
-      const apiResponse = await get({
-        apiName: 'CalisthenicsAPI',
-        path: '/athletes'
-      }).response;
-      const response = await apiResponse.body.json();
-      const userAthlete = response.find(athlete => 
-        athlete.email === user?.attributes?.email
-      );
+      // Check if user already has a profile by trying to get their specific profile
+      // Use the user's sub (userId) to check their own profile
+      const userId = user?.attributes?.sub;
       
-      if (userAthlete && userAthlete.categoryId) {
-        setNeedsSetup(false);
-      } else {
-        // Pre-fill alias and age from sign-up if available
-        const userAlias = user?.attributes?.['custom:alias'];
-        const userAge = user?.attributes?.['custom:age'];
+      if (!userId) {
+        console.error('No user ID found');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const apiResponse = await get({
+          apiName: 'CalisthenicsAPI',
+          path: `/athletes/${userId}`,
+          options: {
+            headers: {
+              Authorization: `Bearer ${(await fetchAuthSession()).tokens.idToken}`
+            }
+          }
+        }).response;
+        const userAthlete = await apiResponse.body.json();
         
-        if (userAlias) {
-          setAlias(userAlias);
+        if (userAthlete && userAthlete.categoryId) {
+          setNeedsSetup(false);
+        } else {
+          // Profile exists but no category - still needs setup
+          setupPrefilledData();
         }
-        if (userAge) {
-          setAge(userAge);
-        }
+      } catch (error) {
+        // Any error (404, 401, etc.) means we should show setup
+        // 404 = no profile exists yet
+        // 401 = not authorized (athlete doesn't have permissions yet)
+        // In both cases, let them create their profile
+        console.log('Profile check failed, showing setup:', error.message);
+        setupPrefilledData();
       }
     } catch (error) {
-      console.error('Error checking user setup:', error);
+      console.error('Error in checkUserSetup:', error);
+      setupPrefilledData();
     } finally {
       setLoading(false);
     }
+  };
+
+  const setupPrefilledData = () => {
+    // Pre-fill alias from sign-up if available
+    const userAlias = user?.attributes?.['custom:alias'] || user?.attributes?.nickname;
+    
+    if (userAlias) {
+      setAlias(userAlias);
+    }
+    // Age is no longer stored in Cognito - will be stored in database only
   };
 
   const handleCategorySelect = (categoryId) => {
@@ -85,7 +109,31 @@ function UserSetup({ user, signOut }) {
       };
 
       console.log('Saving athlete data:', athleteData);
-      await post('/athletes', athleteData);
+      
+      // Debug: Check what token we're getting
+      try {
+        const session = await fetchAuthSession();
+        console.log('🔍 Auth session:', {
+          hasIdToken: !!session.tokens?.idToken,
+          hasAccessToken: !!session.tokens?.accessToken,
+          idTokenString: session.tokens?.idToken?.toString().substring(0, 50) + '...'
+        });
+      } catch (error) {
+        console.error('❌ Error getting auth session:', error);
+      }
+      
+      const apiResponse = await post({
+        apiName: 'CalisthenicsAPI',
+        path: '/athletes',
+        options: {
+          body: athleteData,
+          headers: {
+            Authorization: `Bearer ${(await fetchAuthSession()).tokens.idToken}`
+          }
+        }
+      }).response;
+      
+      await apiResponse.body.json();
       setNeedsSetup(false);
     } catch (error) {
       console.error('Error completing setup:', error);
@@ -110,7 +158,25 @@ function UserSetup({ user, signOut }) {
               <h1>{t('auth.profileSetup.title')}</h1>
               <p>{t('auth.profileSetup.subtitle')}</p>
             </div>
-            <LanguageSwitcher />
+            <div className="header-actions">
+              <LanguageSwitcher />
+              <button 
+                onClick={() => {
+                  // Clear all Cognito tokens before signing out
+                  Object.keys(localStorage).forEach(key => {
+                    if (key.includes('CognitoIdentityServiceProvider')) {
+                      localStorage.removeItem(key);
+                    }
+                  });
+                  sessionStorage.clear();
+                  signOut();
+                }} 
+                className="logout-btn" 
+                style={{marginLeft: '10px', padding: '8px 16px', cursor: 'pointer'}}
+              >
+                {t('navigation.logout') || 'Logout'}
+              </button>
+            </div>
           </div>
           
           <div className="profile-form">

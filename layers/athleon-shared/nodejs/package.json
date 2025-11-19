@@ -8,5 +8,13 @@
     "@aws-sdk/client-s3": "^3.645.0",
     "@aws-sdk/client-appconfigdata": "^3.645.0",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "fast-check": "^3.15.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
   }
 }

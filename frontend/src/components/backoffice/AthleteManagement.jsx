@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { useOrganization } from '../../contexts/OrganizationContext';
+import { useNotification } from '../common/NotificationProvider';
 
 function AthleteManagement({ user: userProp }) {
   const { selectedOrganization } = useOrganization();
+  const { showNotification } = useNotification();
   const [athletes, setAthletes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [events, setCompetitions] = useState([]);
@@ -193,10 +195,11 @@ function AthleteManagement({ user: userProp }) {
     if (!selectedOrganization) return;
     
     try {
-      // Fetch organization's events, not public events
+      // Fetch organization's events (includes both published and unpublished for organizers/admins)
       const response = await get(`/competitions?organizationId=${selectedOrganization.organizationId}`);
       const comps = Array.isArray(response) ? response : [];
-      console.log('Organization competitions loaded:', comps);
+      console.log('Organization competitions loaded (including unpublished):', comps);
+      console.log('Total events available for registration:', comps.length);
       setCompetitions(comps);
     } catch (error) {
       console.error('Error fetching organization events:', error);
@@ -236,11 +239,18 @@ function AthleteManagement({ user: userProp }) {
   const handleRegister = async (athleteId, eventId, categoryId) => {
     try {
       await post(`/athletes/${athleteId}/competitions`, { eventId, categoryId });
+      // Fetch updated competitions for this athlete
       await fetchAthleteCompetitions(athleteId);
-      alert('Athlete registered successfully');
+      // Also refresh the full athlete list to ensure data consistency
+      await fetchAthletes();
+      showNotification('✅ Athlete registered successfully', 'success');
     } catch (error) {
       console.error('Error registering athlete:', error);
-      alert('Error registering athlete. Please try again.');
+      if (error.response?.status === 409) {
+        showNotification('⚠️ Athlete is already registered for this event', 'warning');
+      } else {
+        showNotification('❌ Error registering athlete. Please try again.', 'error');
+      }
     }
   };
 
@@ -252,10 +262,10 @@ function AthleteManagement({ user: userProp }) {
     try {
       await del(`/athletes/${athleteId}/competitions/${eventId}`);
       await fetchAthleteCompetitions(athleteId);
-      alert('Athlete deregistered successfully');
+      showNotification('✅ Athlete deregistered successfully', 'success');
     } catch (error) {
       console.error('Error deregistering athlete:', error);
-      alert('Error deregistering athlete. Please try again.');
+      showNotification('❌ Error deregistering athlete. Please try again.', 'error');
     }
   };
 
@@ -290,7 +300,7 @@ function AthleteManagement({ user: userProp }) {
                          userProp?.attributes?.['custom:role'] === 'super_admin';
     
     if (!isSuperAdmin) {
-      alert('Only super admin can delete athletes from the platform.');
+      showNotification('⚠️ Only super admin can delete athletes from the platform.', 'warning');
       return;
     }
 
@@ -298,10 +308,10 @@ function AthleteManagement({ user: userProp }) {
       try {
         await del(`/athletes/${athlete.athleteId}`);
         await fetchAthletes();
-        alert('Athlete deleted successfully.');
+        showNotification('✅ Athlete deleted successfully', 'success');
       } catch (error) {
         console.error('Error deleting athlete:', error);
-        alert('Error deleting athlete. Please try again.');
+        showNotification('❌ Error deleting athlete. Please try again.', 'error');
       }
     }
   };
@@ -311,10 +321,10 @@ function AthleteManagement({ user: userProp }) {
       try {
         await del(`/athletes/${athlete.athleteId}`);
         await fetchAthletes();
-        alert('User reset successfully. They will need to complete setup again on next login.');
+        showNotification('✅ User reset successfully. They will need to complete setup again on next login.', 'success');
       } catch (error) {
         console.error('Error resetting user:', error);
-        alert('Error resetting user. Please try again.');
+        showNotification('❌ Error resetting user. Please try again.', 'error');
       }
     }
   };
@@ -337,9 +347,10 @@ function AthleteManagement({ user: userProp }) {
 
       setShowModal(false);
       await fetchAthletes();
+      showNotification('✅ Athlete saved successfully', 'success');
     } catch (error) {
       console.error('Error saving athlete:', error);
-      alert('Error saving athlete');
+      showNotification('❌ Error saving athlete. Please try again.', 'error');
     }
   };
 
@@ -385,8 +396,9 @@ function AthleteManagement({ user: userProp }) {
 
         setImportSummary(summary);
         await fetchAthletes();
+        showNotification('✅ Athletes imported successfully', 'success');
       } catch (error) {
-        alert('Error parsing file. Please ensure it\'s a valid CSV.');
+        showNotification('❌ Error parsing file. Please ensure it\'s a valid CSV.', 'error');
       }
     };
     reader.readAsText(file);
@@ -490,8 +502,9 @@ function AthleteManagement({ user: userProp }) {
           <tbody>
             {filteredAthletes.map(athlete => {
               const fullName = `${athlete.firstName} ${athlete.lastName}`;
+              const athleteKey = athlete.userId || athlete.athleteId;
               const isExpanded = expandedAthlete === athlete.athleteId;
-              const athleteComps = athleteCompetitions[athlete.athleteId] || [];
+              const athleteComps = athleteCompetitions[athleteKey] || [];
               
               return (
                 <React.Fragment key={athlete.athleteId}>
@@ -604,7 +617,7 @@ function AthleteManagement({ user: userProp }) {
                           <p className="no-events">Not registered in any events</p>
                         )}
                         
-                        <h4>Register for Event</h4>
+                        <h4>✚ Register for Event</h4>
                         <div className="registration-section">
                           {events.filter(event => {
                             const athleteComps = athleteCompetitions[athlete.userId || athlete.athleteId] || [];
@@ -613,9 +626,14 @@ function AthleteManagement({ user: userProp }) {
                             <div key={event.eventId} className="event-registration">
                               <div className="event-info">
                                 <strong>{event.name}</strong>
-                                <span className="event-date">
-                                  {new Date(event.startDate).toLocaleDateString()}
-                                </span>
+                                <div className="event-meta">
+                                  <span className="event-date">
+                                    📅 {new Date(event.startDate).toLocaleDateString()}
+                                  </span>
+                                  <span className={`event-status ${event.published ? 'published' : 'draft'}`}>
+                                    {event.published ? '✓ Published' : '📝 Draft'}
+                                  </span>
+                                </div>
                               </div>
                               <select 
                                 className="category-select"
@@ -929,16 +947,40 @@ function AthleteManagement({ user: userProp }) {
         .event-info {
           display: flex;
           flex-direction: column;
+          gap: 6px;
+        }
+        .event-meta {
+          display: flex;
+          gap: 12px;
+          align-items: center;
         }
         .event-date {
           font-size: 0.9em;
           color: #666;
+        }
+        .event-status {
+          font-size: 0.85em;
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-weight: 500;
+        }
+        .event-status.published {
+          background: #d4edda;
+          color: #155724;
+        }
+        .event-status.draft {
+          background: #fff3cd;
+          color: #856404;
         }
         .category-select {
           padding: 5px 10px;
           border: 1px solid #ddd;
           border-radius: 4px;
           background: white;
+          cursor: pointer;
+        }
+        .category-select:hover {
+          border-color: #007bff;
         }
         .events-detail {
           padding: 20px;

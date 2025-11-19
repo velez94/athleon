@@ -4,10 +4,11 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Amplify } from 'aws-amplify';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
-import { Authenticator } from '@aws-amplify/ui-react';
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { OrganizationProvider } from './contexts/OrganizationContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import { NotificationProvider } from './components/common/NotificationProvider';
 import { LoadingSpinner } from './components/common/Loading';
 import { queryClient } from './lib/queryClient';
 import amplifyConfig from './amplifyconfiguration';
@@ -102,7 +103,7 @@ function AuthenticatedRoutes({ user, signOut }) {
               email_verified: idTokenPayload.email_verified,
               given_name: idTokenPayload.given_name,
               family_name: idTokenPayload.family_name,
-              'custom:role': idTokenPayload['custom:role'],
+              'custom:role': idTokenPayload['custom:role'] || idTokenPayload.role,
               'custom:organizerRole': idTokenPayload['custom:organizerRole'],
               'custom:isSuperAdmin': idTokenPayload['custom:isSuperAdmin']
             }
@@ -199,59 +200,113 @@ function AuthPage() {
       components={{
         SignUp: {
           FormFields() {
+            const { validationErrors } = useAuthenticator();
+            
             return (
               <>
                 <Authenticator.SignUp.FormFields />
                 <div style={{ marginTop: '20px' }}>
                   <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-                    <legend style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>
-                      I am a
+                    <legend style={{ 
+                      display: 'block', 
+                      marginBottom: '10px', 
+                      fontWeight: '600',
+                      fontSize: '16px'
+                    }}>
+                      I am a <span style={{ color: '#e53e3e' }}>*</span>
                     </legend>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <label htmlFor="role-athlete" style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        padding: '15px',
-                        border: '2px solid #e2e8f0',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}>
+                      <label 
+                        htmlFor="role-athlete" 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          padding: '15px',
+                          border: '2px solid #e2e8f0',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          backgroundColor: '#fff'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#4299e1';
+                          e.currentTarget.style.backgroundColor = '#ebf8ff';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#e2e8f0';
+                          e.currentTarget.style.backgroundColor = '#fff';
+                        }}
+                      >
                         <input 
                           id="role-athlete"
                           type="radio" 
                           name="custom:role" 
                           value="athlete"
                           defaultChecked
-                          style={{ marginRight: '10px' }}
+                          required
+                          style={{ 
+                            marginRight: '10px',
+                            width: '18px',
+                            height: '18px',
+                            cursor: 'pointer'
+                          }}
+                          aria-label="Select athlete role"
                         />
                         <div>
-                          <div style={{ fontWeight: '600' }}>Athlete</div>
-                          <div style={{ fontSize: '14px', color: '#718096' }}>Compete in events</div>
+                          <div style={{ fontWeight: '600', fontSize: '15px' }}>Athlete</div>
+                          <div style={{ fontSize: '14px', color: '#718096' }}>Compete in events and view leaderboards</div>
                         </div>
                       </label>
-                      <label htmlFor="role-organizer" style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        padding: '15px',
-                        border: '2px solid #e2e8f0',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}>
-                      <input 
-                        id="role-organizer"
-                        type="radio" 
-                        name="custom:role" 
-                        value="organizer"
-                        style={{ marginRight: '10px' }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: '600' }}>Organizer</div>
-                        <div style={{ fontSize: '14px', color: '#718096' }}>Create and manage competitions</div>
+                      <label 
+                        htmlFor="role-organizer" 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          padding: '15px',
+                          border: '2px solid #e2e8f0',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          backgroundColor: '#fff'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#4299e1';
+                          e.currentTarget.style.backgroundColor = '#ebf8ff';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = '#e2e8f0';
+                          e.currentTarget.style.backgroundColor = '#fff';
+                        }}
+                      >
+                        <input 
+                          id="role-organizer"
+                          type="radio" 
+                          name="custom:role" 
+                          value="organizer"
+                          required
+                          style={{ 
+                            marginRight: '10px',
+                            width: '18px',
+                            height: '18px',
+                            cursor: 'pointer'
+                          }}
+                          aria-label="Select organizer role"
+                        />
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '15px' }}>Organizer</div>
+                          <div style={{ fontSize: '14px', color: '#718096' }}>Create and manage competitions</div>
+                        </div>
+                      </label>
+                    </div>
+                    {validationErrors?.['custom:role'] && (
+                      <div style={{ 
+                        color: '#e53e3e', 
+                        fontSize: '14px', 
+                        marginTop: '8px' 
+                      }}>
+                        {validationErrors['custom:role']}
                       </div>
-                    </label>
-                  </div>
+                    )}
                   </fieldset>
                 </div>
               </>
@@ -296,30 +351,32 @@ function AuthPageWrapper() {
 function App() {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <Router
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}
-        >
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/events" element={<PublicEvents />} />
-              <Route path="/wods" element={<PublicWODs />} />
-              <Route path="/exercises" element={<PublicExercises />} />
-              <Route path="/events/:eventId" element={<PublicEventDetail />} />
-              <Route path="/athlete/events/:eventId" element={<AthleteEventDetails />} />
-              <Route path="/login" element={<AuthPageWrapper />} />
-              <Route path="/athlete/:athleteId" element={<AuthPage />} />
-              <Route path="/backoffice/*" element={<AuthPage />} />
-              <Route path="/*" element={<AuthPage />} />
-            </Routes>
-          </Suspense>
-        </Router>
-        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-      </QueryClientProvider>
+      <NotificationProvider>
+        <QueryClientProvider client={queryClient}>
+          <Router
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true
+            }}
+          >
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/events" element={<PublicEvents />} />
+                <Route path="/wods" element={<PublicWODs />} />
+                <Route path="/exercises" element={<PublicExercises />} />
+                <Route path="/events/:eventId" element={<PublicEventDetail />} />
+                <Route path="/athlete/events/:eventId" element={<AthleteEventDetails />} />
+                <Route path="/login" element={<AuthPageWrapper />} />
+                <Route path="/athlete/:athleteId" element={<AuthPage />} />
+                <Route path="/backoffice/*" element={<AuthPage />} />
+                <Route path="/*" element={<AuthPage />} />
+              </Routes>
+            </Suspense>
+          </Router>
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+        </QueryClientProvider>
+      </NotificationProvider>
     </ErrorBoundary>
   );
 }

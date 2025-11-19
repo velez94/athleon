@@ -686,19 +686,18 @@ function WODManagement({ user: userProp }) {
                     required
                   >
                     <option value="">Select Organization</option>
-                    {selectedOrganization?.organizationId !== 'all' ? (
+                    {(user?.attributes?.email === 'admin@athleon.fitness' || user?.attributes?.['custom:role'] === 'super_admin') && (
+                      <option value="transversal">Transversal Template</option>
+                    )}
+                    {selectedOrganization?.organizationId !== 'all' && (
                       <option value={selectedOrganization?.organizationId}>
                         {selectedOrganization?.name}
                       </option>
-                    ) : (
-                      user?.attributes?.email === 'admin@athleon.fitness' && (
-                        <option value="transversal">Global Template (Transversal)</option>
-                      )
                     )}
                   </select>
                   <small style={{color: '#666', fontSize: '12px', marginTop: '4px', display: 'block'}}>
-                    {user?.attributes?.email === 'admin@athleon.fitness' 
-                      ? 'Super admin can create global templates'
+                    {(user?.attributes?.email === 'admin@athleon.fitness' || user?.attributes?.['custom:role'] === 'super_admin')
+                      ? 'Super admin can create transversal templates or organization-specific WODs'
                       : 'WOD will be created for your organization'
                     }
                   </small>

@@ -13,22 +13,34 @@ const ATHLETE_EVENTS_TABLE = process.env.ATHLETE_EVENTS_TABLE || 'athlete-events
 const AUTHORIZATION_USER_ROLES_TABLE = process.env.AUTHORIZATION_USER_ROLES_TABLE;
 const AUTHORIZATION_PERMISSIONS_TABLE = process.env.AUTHORIZATION_PERMISSIONS_TABLE;
 
-// Simple authorization check
+// Import shared auth utilities
+const { verifyToken } = require('/opt/nodejs/utils/auth');
+const { 
+  extractAuthContext, 
+  requireRole, 
+  ForbiddenError, 
+  UnauthorizedError 
+} = require('/opt/nodejs/utils/authorization');
+
+// Simple authorization check using new middleware
 async function checkAuthorization(event, resource, action) {
-  const userId = event.requestContext?.authorizer?.claims?.sub;
-  const userEmail = event.requestContext?.authorizer?.claims?.email;
-
-  if (!userId) {
-    return { authorized: false, user: null };
+  try {
+    const authContext = extractAuthContext(event);
+    
+    // All authenticated users can access athlete endpoints
+    // (athletes can access their own data, organizers can view athlete data)
+    return { 
+      authorized: true, 
+      user: { userId: authContext.userId, email: authContext.email }, 
+      role: authContext.role 
+    };
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      console.error('Authorization failed:', error.message);
+      return { authorized: false, user: null };
+    }
+    throw error;
   }
-
-  // Super admin bypass
-  if (userEmail === 'admin@athleon.fitness') {
-    return { authorized: true, user: { userId, email: userEmail }, role: 'super_admin' };
-  }
-
-  // For now, allow authenticated users basic access
-  return { authorized: true, user: { userId, email: userEmail }, role: 'user' };
 }
 
 exports.handler = async (event) => {
@@ -60,6 +72,26 @@ exports.handler = async (event) => {
 
       const athleteId = pathParts[pathParts.length - 2];
       const body = JSON.parse(event.body);
+      
+      // Check if already registered to prevent duplicates
+      const { Item: existingRegistration } = await ddb.send(new GetCommand({
+        TableName: ATHLETE_EVENTS_TABLE,
+        Key: {
+          userId: athleteId,
+          eventId: body.eventId
+        }
+      }));
+      
+      if (existingRegistration) {
+        return {
+          statusCode: 409,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          body: JSON.stringify({ 
+            message: 'Already registered for this event',
+            registration: existingRegistration
+          })
+        };
+      }
       
       const item = {
         userId: athleteId,

@@ -25,16 +25,8 @@ exports.handler = async (event) => {
 
     // GET /public/categories?eventId={eventId}
     if (httpMethod === 'GET') {
-      const eventId = queryStringParameters?.eventId;
+      const eventId = queryStringParameters?.eventId || 'global';
       
-      if (!eventId) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'eventId query parameter is required' })
-        };
-      }
-
       console.log('Querying categories for eventId:', eventId);
       
       const { Items } = await dynamodb.send(new QueryCommand({

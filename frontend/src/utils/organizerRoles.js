@@ -81,22 +81,22 @@ export const getOrganizerRole = (user) => {
     organizerRole: user?.attributes?.['custom:organizerRole']
   });
   
-  // Check for super admin by role
+  // Check for super admin by custom:role attribute
   if (user?.attributes?.['custom:role'] === 'super_admin') {
-    console.log('✅ User is SUPER_ADMIN (by role)');
+    console.log('✅ User is SUPER_ADMIN (by custom:role)');
     return ORGANIZER_ROLES.SUPER_ADMIN;
   }
   
-  // Check for organizerRole attribute
+  // Check for organizerRole attribute (for fine-grained organizer permissions)
   const organizerRole = user?.attributes?.['custom:organizerRole'];
   if (organizerRole && Object.values(ORGANIZER_ROLES).includes(organizerRole)) {
     console.log('✅ User has organizerRole:', organizerRole);
     return organizerRole;
   }
   
-  // Legacy: if role is 'organizer', default to event_admin
+  // Check if role is 'organizer' - default to event_admin
   if (user?.attributes?.['custom:role'] === 'organizer') {
-    console.log('✅ User is EVENT_ADMIN (legacy organizer role)');
+    console.log('✅ User is EVENT_ADMIN (organizer role)');
     return ORGANIZER_ROLES.EVENT_ADMIN;
   }
   

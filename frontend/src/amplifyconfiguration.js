@@ -1,11 +1,13 @@
+// Load configuration from JSON file
+import awsConfigJson from './aws-config.json';
+
 // Amplify v6 Configuration
-// Vite uses import.meta.env instead of process.env
 const amplifyConfig = {
   Auth: {
     Cognito: {
-      userPoolId: import.meta.env.VITE_USER_POOL_ID || import.meta.env.REACT_APP_USER_POOL_ID || '',
-      userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID || import.meta.env.REACT_APP_USER_POOL_CLIENT_ID || '',
-      region: import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2',
+      userPoolId: awsConfigJson.userPoolId || import.meta.env.VITE_USER_POOL_ID || import.meta.env.REACT_APP_USER_POOL_ID || '',
+      userPoolClientId: awsConfigJson.userPoolClientId || import.meta.env.VITE_USER_POOL_CLIENT_ID || import.meta.env.REACT_APP_USER_POOL_CLIENT_ID || '',
+      region: awsConfigJson.region || import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2',
       loginWith: {
         email: true,
       },
@@ -28,14 +30,14 @@ const amplifyConfig = {
   Storage: {
     S3: {
       bucket: 'calisthenics-event-images-571340586587',
-      region: import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2',
+      region: awsConfigJson.region || import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2',
     }
   },
   API: {
     REST: {
       CalisthenicsAPI: {
-        endpoint: import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL || '',
-        region: import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2'
+        endpoint: awsConfigJson.apiUrl || import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL || '',
+        region: awsConfigJson.region || import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2'
       }
     }
   }

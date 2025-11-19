@@ -11,9 +11,10 @@ function CategorySelection({ onCategorySelect, selectedCategoryId }) {
 
   const fetchCategories = async () => {
     try {
+      // Use public endpoint to fetch global/transversal categories
       const apiResponse = await get({
         apiName: 'CalisthenicsAPI',
-        path: '/categories'
+        path: '/public/categories'
       }).response;
       const response = await apiResponse.body.json();
       setCategories(response || []);

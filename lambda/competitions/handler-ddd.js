@@ -14,6 +14,12 @@ const {
   createErrorResponse,
   getCorsHeaders 
 } = require('/opt/nodejs/utils/http-headers');
+const { 
+  extractAuthContext, 
+  requireRole, 
+  ForbiddenError, 
+  UnauthorizedError 
+} = require('/opt/nodejs/utils/authorization');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -112,6 +118,17 @@ exports.handler = async (event) => {
       return createErrorResponse(401, 'Authentication required', origin);
     }
 
+    // Extract authentication context for role-based authorization
+    let authContext;
+    try {
+      authContext = extractAuthContext(event);
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        return createErrorResponse(401, error.message, origin);
+      }
+      throw error;
+    }
+
     // GET /competitions?organizationId={orgId} - Get organization events
     if (path === '' && method === 'GET') {
       const organizationId = event.queryStringParameters?.organizationId;
@@ -126,6 +143,16 @@ exports.handler = async (event) => {
 
     // POST /competitions - Create new event
     if (path === '' && method === 'POST') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       const { categories, wods, ...eventData } = requestBody;
       
       const newEvent = await service.createEvent(eventData, userId);
@@ -198,6 +225,16 @@ exports.handler = async (event) => {
 
     // PUT /competitions/{eventId} - Update event
     if (eventId && pathParts.length === 1 && method === 'PUT') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       const { categories, wods, workouts, ...eventData } = requestBody;
       
       const updatedEvent = await service.updateEvent(eventId, eventData, userId);
@@ -349,30 +386,80 @@ exports.handler = async (event) => {
 
     // POST /competitions/{eventId}/publish - Publish event
     if (eventId && pathParts[1] === 'publish' && method === 'POST') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       const publishedEvent = await service.publishEvent(eventId, userId);
       return createResponse(200, publishedEvent.toObject(), origin);
     }
 
     // POST /competitions/{eventId}/unpublish - Unpublish event
     if (eventId && pathParts[1] === 'unpublish' && method === 'POST') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       const unpublishedEvent = await service.unpublishEvent(eventId, userId);
       return createResponse(200, unpublishedEvent.toObject(), origin);
     }
 
     // POST /competitions/{eventId}/leaderboard/public - Make leaderboard public
     if (eventId && pathParts[1] === 'leaderboard' && pathParts[2] === 'public' && method === 'POST') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       const updatedEvent = await service.makeLeaderboardPublic(eventId, userId);
       return createResponse(200, updatedEvent.toObject(), origin);
     }
 
     // POST /competitions/{eventId}/leaderboard/private - Make leaderboard private
     if (eventId && pathParts[1] === 'leaderboard' && pathParts[2] === 'private' && method === 'POST') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       const updatedEvent = await service.makeLeaderboardPrivate(eventId, userId);
       return createResponse(200, updatedEvent.toObject(), origin);
     }
 
     // DELETE /competitions/{eventId} - Delete event
     if (eventId && pathParts.length === 1 && method === 'DELETE') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       await service.deleteEvent(eventId, userId);
       return createResponse(204, '', origin);
     }
@@ -384,6 +471,16 @@ exports.handler = async (event) => {
 
     // POST /competitions/{eventId}/upload-url - Generate S3 upload URL
     if (eventId && pathParts[1] === 'upload-url' && method === 'POST') {
+      // Require organizer or super_admin role
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return createErrorResponse(403, error.message, origin);
+        }
+        throw error;
+      }
+
       const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
       const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
       

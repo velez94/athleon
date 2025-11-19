@@ -80,9 +80,9 @@ export class AthleonStack extends cdk.Stack {
     const networkStack = new NetworkStack(this, 'Network', {
       stage: props.stage,
       userPool: sharedStack.userPool,
-      certificate: frontendStack.apiCertificate,
+      certificate: props.config.frontend.customDomain ? frontendStack.apiCertificate : undefined,
       apiDomain: props.config.frontend.customDomain ? `api.${props.config.domain}` : undefined,
-      hostedZone: frontendStack.hostedZone,
+      hostedZone: props.config.frontend.customDomain ? frontendStack.hostedZone : undefined,
     });
 
     // 3. Organizations (RBAC foundation)

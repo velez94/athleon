@@ -2,6 +2,12 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const logger = require('/opt/nodejs/utils/logger');
 const { getCorsHeaders } = require('/opt/nodejs/utils/auth');
+const { 
+  extractAuthContext, 
+  requireRole, 
+  ForbiddenError, 
+  UnauthorizedError 
+} = require('/opt/nodejs/utils/authorization');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -362,6 +368,21 @@ exports.handler = async (event) => {
     };
   }
 
+  // Extract authentication context for role-based authorization
+  let authContext;
+  try {
+    authContext = extractAuthContext(event);
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ message: error.message })
+      };
+    }
+    throw error;
+  }
+
   // List WODs by eventId query parameter - /wods?eventId={eventId}
   if (path === '' && method === 'GET') {
     logger.info('Processing GET /wods request', { 
@@ -493,16 +514,18 @@ exports.handler = async (event) => {
       
       const body = JSON.parse(event.body);
       
-      // Check authorization for WOD creation
-      const authCheck = await checkWodAccess(userId, userEmail, 'create', null, body.eventId, userRole);
-      if (!authCheck.authorized) {
-        return {
-          statusCode: 403,
-          headers,
-          body: JSON.stringify({ 
-            message: authCheck.reason || 'Access denied - insufficient permissions to create WODs' 
-          })
-        };
+      // Require organizer or super_admin role for WOD creation
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return {
+            statusCode: 403,
+            headers,
+            body: JSON.stringify({ message: error.message })
+          };
+        }
+        throw error;
       }
       
       // Validate time cap for time-based scoring systems
@@ -641,16 +664,18 @@ exports.handler = async (event) => {
       
       const existingWod = wods[0];
 
-      // Check authorization for WOD update using the existing WOD's eventId
-      const authCheck = await checkWodAccess(userId, userEmail, 'update', wodId, existingWod.eventId, userRole);
-      if (!authCheck.authorized) {
-        return {
-          statusCode: 403,
-          headers,
-          body: JSON.stringify({ 
-            message: authCheck.reason || 'Access denied - insufficient permissions to update WODs' 
-          })
-        };
+      // Require organizer or super_admin role for WOD updates
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return {
+            statusCode: 403,
+            headers,
+            body: JSON.stringify({ message: error.message })
+          };
+        }
+        throw error;
       }
       
       // Check if this is adding a WOD to an event (has eventId but minimal data)

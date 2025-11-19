@@ -25,9 +25,8 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: 'jsdom',
-      setupFiles: ['./frontend/src/setupTests.js'],
+      setupFiles: ['./src/setupTests.js'],
       css: true,
-      root: '.',
     }
   }
 })

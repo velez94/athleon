@@ -9,6 +9,10 @@
     "@aws-sdk/client-s3": "^3.0.0",
     "@aws-sdk/lib-dynamodb": "^3.0.0",
     "jsdom": "^27.2.0",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.10",
+    "fast-check": "^3.15.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

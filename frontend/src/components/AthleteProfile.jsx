@@ -189,7 +189,11 @@ function AthleteProfile({ user, signOut }) {
       showNotification('Registration successful!');
     } catch (error) {
       console.error('Error registering for event:', error);
-      showNotification('Error registering for event. Please try again.', 'error');
+      if (error.response?.status === 409) {
+        showNotification('You are already registered for this event', 'warning');
+      } else {
+        showNotification('Error registering for event. Please try again.', 'error');
+      }
     }
   };
 

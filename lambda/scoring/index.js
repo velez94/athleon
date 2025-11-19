@@ -7,6 +7,12 @@ const { parseTimeToSeconds, isValidTimeFormat, exceedsTimeCap } = require('./uti
 // Import from Lambda Layer
 const { verifyToken, isSuperAdmin, checkOrganizationAccess, getCorsHeaders } = require('/opt/nodejs/utils/auth');
 const logger = require('/opt/nodejs/utils/logger');
+const { 
+  extractAuthContext, 
+  requireRole, 
+  ForbiddenError, 
+  UnauthorizedError 
+} = require('/opt/nodejs/utils/authorization');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -207,15 +213,23 @@ exports.handler = async (event) => {
         };
       }
 
-      // Check authorization for score submission
-      const authCheck = await checkScoreAccess(userId, userEmail, 'create', body.eventId);
-      if (!authCheck.authorized) {
-        return {
-          statusCode: 403,
-          headers,
-          body: JSON.stringify({ message: 'Access denied - insufficient permissions to submit scores' })
-        };
+      // Extract authentication context for role-based authorization
+      let authContext;
+      try {
+        authContext = extractAuthContext(event);
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          return {
+            statusCode: 401,
+            headers,
+            body: JSON.stringify({ message: error.message })
+          };
+        }
+        throw error;
       }
+
+      // Athletes can submit their own scores, organizers can submit any scores
+      // No additional role check needed - all authenticated users can submit scores
       
       // Check if score already exists for this athlete+WOD+category
       const { Items: existingScores } = await ddb.send(new QueryCommand({

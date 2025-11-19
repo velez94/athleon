@@ -2,6 +2,12 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, ScanCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const logger = require('/opt/nodejs/utils/logger');
 const { getCorsHeaders } = require('/opt/nodejs/utils/auth');
+const { 
+  extractAuthContext, 
+  requireRole, 
+  ForbiddenError, 
+  UnauthorizedError 
+} = require('/opt/nodejs/utils/authorization');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -193,18 +199,37 @@ exports.handler = async (event) => {
     };
   }
 
+  // Extract authentication context for role-based authorization
+  let authContext;
+  try {
+    authContext = extractAuthContext(event);
+  } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ message: error.message })
+      };
+    }
+    throw error;
+  }
+
   if (path === '' && method === 'POST') {
       const body = JSON.parse(event.body || '{}');
       const { eventId, categoryId, ...categoryData } = body;
 
-      // Check authorization for category creation
-      const authCheck = await checkCategoryAccess(userId, userEmail, 'create', eventId, false, userRole);
-      if (!authCheck.authorized) {
-        return {
-          statusCode: 403,
-          headers,
-          body: JSON.stringify({ message: 'Access denied - insufficient permissions to create categories' })
-        };
+      // Require organizer or super_admin role for category creation
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return {
+            statusCode: 403,
+            headers,
+            body: JSON.stringify({ message: error.message })
+          };
+        }
+        throw error;
       }
 
       if (categoryId && eventId && !categoryData.name) {
@@ -355,19 +380,18 @@ exports.handler = async (event) => {
         };
       }
 
-      // Check if this is a transversal category
-      const isTransversal = body.eventId === 'global';
-
-      // Check authorization for category update
-      const authCheck = await checkCategoryAccess(userId, userEmail, 'update', body.eventId, isTransversal, userRole);
-      if (!authCheck.authorized) {
-        return {
-          statusCode: 403,
-          headers,
-          body: JSON.stringify({ 
-            message: authCheck.reason || 'Access denied - insufficient permissions to update categories' 
-          })
-        };
+      // Require organizer or super_admin role for category updates
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return {
+            statusCode: 403,
+            headers,
+            body: JSON.stringify({ message: error.message })
+          };
+        }
+        throw error;
       }
       
       if (body.eventId && !body.name) {
@@ -443,27 +467,18 @@ exports.handler = async (event) => {
       const categoryId = path.split('/')[1];
       const eventId = event.queryStringParameters?.eventId;
 
-      // Check if this is a transversal category
-      let isTransversal = false;
-      if (!eventId || eventId === 'global') {
-        // Check if category exists in global context (transversal)
-        const { Item } = await ddb.send(new GetCommand({
-          TableName: CATEGORIES_TABLE,
-          Key: { eventId: 'global', categoryId }
-        }));
-        isTransversal = !!Item;
-      }
-
-      // Check authorization for category deletion
-      const authCheck = await checkCategoryAccess(userId, userEmail, 'delete', eventId, isTransversal, userRole);
-      if (!authCheck.authorized) {
-        return {
-          statusCode: 403,
-          headers,
-          body: JSON.stringify({ 
-            message: authCheck.reason || 'Access denied - insufficient permissions to delete categories' 
-          })
-        };
+      // Require organizer or super_admin role for category deletion
+      try {
+        requireRole(['organizer', 'super_admin'])(authContext);
+      } catch (error) {
+        if (error instanceof ForbiddenError) {
+          return {
+            statusCode: 403,
+            headers,
+            body: JSON.stringify({ message: error.message })
+          };
+        }
+        throw error;
       }
       
       if (eventId) {

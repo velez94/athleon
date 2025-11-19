@@ -52,7 +52,8 @@ async function createCognitoUser(athlete) {
         { Name: 'email', Value: athlete.email },
         { Name: 'email_verified', Value: 'true' },
         { Name: 'given_name', Value: athlete.firstName },
-        { Name: 'family_name', Value: athlete.lastName }
+        { Name: 'family_name', Value: athlete.lastName },
+        { Name: 'custom:role', Value: 'athlete' }
       ],
       TemporaryPassword: 'TempPass123!',
       MessageAction: 'SUPPRESS'

@@ -1,5 +1,22 @@
 # Seed Data Documentation
 
+## Quick Start
+
+### Run Complete Seed (Recommended)
+```bash
+cd seed
+source ./get-table-names.sh
+export ATHLETE_EVENTS_TABLE='Athleon-development-AthletesAthleteEventsTable1485A78C-1OEXNG2ZVE6VM'
+AWS_PROFILE=labvel-dev node seed-all-clean.js
+```
+
+This single command seeds everything in the correct order:
+1. Authorization system (roles & permissions)
+2. Admin users (super admin + organizers)
+3. Athletes (20 test users)
+
+**Idempotent**: Safe to run multiple times.
+
 ## Overview
 This directory contains scripts to populate the Athleon platform with initial test data.
 

@@ -59,15 +59,16 @@ function CustomSignUp({ onSuccess: _onSuccess, onSwitchToSignIn }) {
         signUpParams.attributes.phone_number = formData.phone_number;
       }
       
-      // Store alias and age in custom attributes for athletes
-      if (formData.role === 'athlete') {
-        if (formData.alias) {
-          signUpParams.attributes['custom:alias'] = formData.alias;
-        }
-        if (formData.age) {
-          signUpParams.attributes['custom:age'] = formData.age;
-        }
-      }
+      // Note: alias and age attributes are not yet configured in the User Pool
+      // These will be added in a future update after User Pool recreation
+      // if (formData.role === 'athlete') {
+      //   if (formData.alias) {
+      //     signUpParams.attributes['custom:alias'] = formData.alias;
+      //   }
+      //   if (formData.age) {
+      //     signUpParams.attributes['custom:age'] = formData.age;
+      //   }
+      // }
 
       await signUp(signUpParams);
 
