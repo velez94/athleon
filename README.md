@@ -4,12 +4,30 @@
 
 Multi-tenant competition management platform with role-based access control (RBAC) supporting organizations, organizers, and athletes.
 
+## 📚 Documentation
+
+- **[Architecture Overview](./docs/ARCHITECTURE.md)** - Complete system architecture with diagrams
+- **[Auto-Advance Brackets](./docs/AUTO_ADVANCE_BRACKETS.md)** - Tournament advancement system
+- **[API Documentation](#api-endpoints)** - REST API reference
+
+## Architecture Diagrams
+
+![Complete System](./generated-diagrams/complete-system-architecture.png)
+
+**Domain-Specific Diagrams:**
+- [Scoring Domain](./generated-diagrams/scoring-domain-architecture.png) - Score submission and leaderboard calculation
+- [Scheduling Domain](./generated-diagrams/scheduling-domain-architecture.png) - Tournament scheduling and auto-advance
+- [Auto-Advance Flow](./generated-diagrams/auto-advance-flow.png) - Real-time bracket advancement logic
+
+See [Architecture Documentation](./docs/ARCHITECTURE.md) for detailed domain diagrams and data flows.
+
 ### ✅ **Fully Implemented Features**
 - Complete CDK infrastructure with DDD bounded contexts
 - Organization-based RBAC system
 - Event management with proper lifecycle
-- Advanced scoring system with calculation engine
+- Advanced scoring system with calculation engine (TIME, CLASSIC, ADVANCED)
 - Competition scheduling with tournament support
+- **Auto-advance tournament brackets** - Real-time winner advancement
 - WOD management with sharing system
 - React frontend with AWS Amplify
 - Lambda layer migration with shared utilities

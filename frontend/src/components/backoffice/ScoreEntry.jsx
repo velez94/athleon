@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
 import { useParams, useNavigate } from 'react-router-dom';
+import ScoringSystemErrorBoundary from './ScoringSystemErrorBoundary';
+import ScoringSystemLoader from './ScoringSystemLoader';
+import ScoringSystemError from './ScoringSystemError';
+import ScoringSystemTransition from './ScoringSystemTransition';
 import './ScoreEntry.css';
 
 function ScoreEntry({ user: _user }) {
@@ -27,6 +31,8 @@ function ScoreEntry({ user: _user }) {
   
   // Scoring system state
   const [scoringSystem, setScoringSystem] = useState(null);
+  const [scoringSystemLoading, setScoringSystemLoading] = useState(false);
+  const [scoringSystemError, setScoringSystemError] = useState(null);
   
   // Time-based scoring state
   const [exerciseCompletionStatus, setExerciseCompletionStatus] = useState([]);
@@ -138,19 +144,92 @@ function ScoreEntry({ user: _user }) {
     }
   };
 
-  const fetchScoringSystem = async (wod) => {
+  const fetchScoringSystem = async (wod, retryCount = 0) => {
+    setScoringSystemLoading(true);
+    setScoringSystemError(null);
+    
     try {
       if (!wod || !wod.scoringSystemId) {
         // Fallback to global advanced scoring system
-        setScoringSystem(globalScoringSystem);
+        setScoringSystem({ ...globalScoringSystem, isDefault: true });
+        setScoringSystemError({
+          type: 'missing_config',
+          message: 'No scoring system configured for this WOD',
+          severity: 'warning'
+        });
+        setScoringSystemLoading(false);
         return;
       }
       
       const response = await get(`/scoring-systems/${wod.scoringSystemId}`);
-      setScoringSystem(response || globalScoringSystem);
+      
+      // Validate response
+      if (!response || !response.type) {
+        throw new Error('Invalid scoring system configuration: missing type');
+      }
+      
+      const validTypes = ['classic', 'advanced', 'time-based'];
+      if (!validTypes.includes(response.type)) {
+        throw new Error(`Unknown scoring system type: ${response.type}`);
+      }
+      
+      setScoringSystem(response);
+      setScoringSystemError(null);
     } catch (error) {
       console.error('Error fetching scoring system:', error);
-      setScoringSystem(globalScoringSystem);
+      
+      let errorInfo = {
+        type: 'unknown',
+        message: 'Failed to load scoring system',
+        severity: 'error',
+        originalError: error
+      };
+      
+      // Categorize errors
+      if (error.response?.status === 404) {
+        errorInfo = {
+          type: 'not_found',
+          message: 'Scoring system not found',
+          severity: 'warning'
+        };
+      } else if (error.response?.status === 400 || error.message?.includes('Invalid scoring system')) {
+        errorInfo = {
+          type: 'malformed_config',
+          message: error.message || 'Scoring system configuration is invalid',
+          severity: 'error'
+        };
+      } else if (error.message?.includes('Unknown scoring system type')) {
+        errorInfo = {
+          type: 'unknown_type',
+          message: error.message,
+          severity: 'error'
+        };
+      } else if (!navigator.onLine) {
+        errorInfo = {
+          type: 'network',
+          message: 'No internet connection',
+          severity: 'error'
+        };
+      } else if (error.response?.status >= 500) {
+        errorInfo = {
+          type: 'server',
+          message: 'Server error occurred',
+          severity: 'error'
+        };
+      }
+      
+      setScoringSystemError(errorInfo);
+      
+      // Always provide fallback
+      setScoringSystem({ ...globalScoringSystem, isDefault: true });
+    } finally {
+      setScoringSystemLoading(false);
+    }
+  };
+  
+  const retryScoringSystem = () => {
+    if (selectedWod) {
+      fetchScoringSystem(selectedWod);
     }
   };
 
@@ -563,9 +642,34 @@ function ScoreEntry({ user: _user }) {
     }
   };
 
+  // Helper functions for error boundary
+  const getFormData = () => ({
+    scoreData,
+    athletePerformance,
+    exerciseCompletionStatus,
+    completionTime,
+    rank,
+    selectedWod,
+    scoringSystem
+  });
+
+  const restoreFormData = (data) => {
+    if (data.scoreData) setScoreData(data.scoreData);
+    if (data.athletePerformance) setAthletePerformance(data.athletePerformance);
+    if (data.exerciseCompletionStatus) setExerciseCompletionStatus(data.exerciseCompletionStatus);
+    if (data.completionTime) setCompletionTime(data.completionTime);
+    if (data.rank) setRank(data.rank);
+    if (data.selectedWod) setSelectedWod(data.selectedWod);
+    if (data.scoringSystem) setScoringSystem(data.scoringSystem);
+  };
+
   return (
-    <div className="score-entry">
-      <h1>📊 Score Entry</h1>
+    <ScoringSystemErrorBoundary 
+      getFormData={getFormData}
+      restoreFormData={restoreFormData}
+    >
+      <div className="score-entry">
+        <h1>📊 Score Entry</h1>
       
       {!selectedEvent ? (
         <div className="event-selection">
@@ -735,6 +839,24 @@ function ScoreEntry({ user: _user }) {
                         </span>
                       </div>
                     )}
+                    
+                    {/* Loading state for scoring system */}
+                    {scoreData.wodId && scoringSystemLoading && (
+                      <div style={{marginTop: '12px'}}>
+                        <ScoringSystemLoader size="small" message="Loading scoring system..." />
+                      </div>
+                    )}
+                    
+                    {/* Error display for scoring system */}
+                    {scoreData.wodId && scoringSystemError && !scoringSystemLoading && (
+                      <div style={{marginTop: '12px'}}>
+                        <ScoringSystemError 
+                          error={scoringSystemError}
+                          onRetry={retryScoringSystem}
+                          onDismiss={() => setScoringSystemError(null)}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
                     <label>Category *</label>
@@ -794,15 +916,16 @@ function ScoreEntry({ user: _user }) {
                 </div>
 
                 {selectedWod && scoringSystem?.type === 'time-based' && exerciseCompletionStatus.length > 0 && (
-                  <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
-                    <div style={{
-                      background: 'white',
-                      padding: '12px',
-                      borderRadius: '6px',
-                      marginBottom: '15px',
-                      borderLeft: '4px solid #FF5722'
-                    }}>
-                      <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
+                  <ScoringSystemTransition scoringType="time-based">
+                    <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
+                      <div style={{
+                        background: 'white',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        marginBottom: '15px',
+                        borderLeft: '4px solid #FF5722'
+                      }}>
+                        <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                       <div style={{fontSize: '13px', color: '#666'}}>
                         <div><strong>Format:</strong> {selectedWod.format}</div>
                         {selectedWod.timeCap && (
@@ -964,19 +1087,21 @@ function ScoreEntry({ user: _user }) {
                         </small>
                       )}
                     </div>
-                  </div>
+                    </div>
+                  </ScoringSystemTransition>
                 )}
                 
                 {selectedWod && scoringSystem?.type !== 'time-based' && athletePerformance.length > 0 && (
-                  <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
-                    <div style={{
-                      background: 'white',
-                      padding: '12px',
-                      borderRadius: '6px',
-                      marginBottom: '15px',
-                      borderLeft: '4px solid #FF5722'
-                    }}>
-                      <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
+                  <ScoringSystemTransition scoringType={scoringSystem?.type || 'advanced'}>
+                    <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
+                      <div style={{
+                        background: 'white',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        marginBottom: '15px',
+                        borderLeft: '4px solid #FF5722'
+                      }}>
+                        <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                       <div style={{fontSize: '13px', color: '#666'}}>
                         <div><strong>Format:</strong> {selectedWod.format}</div>
                         {selectedWod.timeLimit && <div><strong>Time Cap:</strong> ⏱️ {selectedWod.timeLimit}</div>}
@@ -1103,7 +1228,8 @@ function ScoreEntry({ user: _user }) {
                         </div>
                       </div>
                     </div>
-                  </div>
+                    </div>
+                  </ScoringSystemTransition>
                 )}
               </>
             )}
@@ -1141,7 +1267,7 @@ function ScoreEntry({ user: _user }) {
                         <label>Session *</label>
                         <select
                           value={selectedSession?.sessionId || ''}
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const allSessions = selectedSchedule.days.flatMap(day => day.sessions || []);
                             const session = allSessions.find(s => s.sessionId === e.target.value);
                             setSelectedSession(session);
@@ -1153,16 +1279,73 @@ function ScoreEntry({ user: _user }) {
                               categoryId: session?.categoryId || '',
                               athleteId: ''
                             });
+                            
+                            // Automatically load WOD and scoring system when session is selected
+                            if (session?.wodId) {
+                              const wod = wods.find(w => w.wodId === session.wodId);
+                              setSelectedWod(wod);
+                              
+                              // Initialize athlete performance for classic/advanced scoring
+                              if (wod?.movements) {
+                                setAthletePerformance(wod.movements.map(m => ({
+                                  exerciseId: m.exerciseId,
+                                  exercise: m.exercise,
+                                  reps: '',
+                                  weight: '',
+                                  eqs: 5
+                                })));
+                              }
+                              
+                              // Fetch and set scoring system
+                              await fetchScoringSystem(wod);
+                            }
                           }}
                           required
                         >
                           <option value="">Select a session...</option>
-                          {selectedSchedule.days.flatMap(day => day.sessions || []).map(session => (
-                            <option key={session.sessionId} value={session.sessionId}>
-                              {session.wodName || session.wodId} - {session.categoryName || session.categoryId} ({session.startTime})
-                            </option>
-                          ))}
+                          {selectedSchedule.days.flatMap(day => day.sessions || []).map(session => {
+                            const sessionWod = wods.find(w => w.wodId === session.wodId);
+                            const badgeInfo = sessionWod ? getScoringBadgeInfo(sessionWod) : null;
+                            return (
+                              <option key={session.sessionId} value={session.sessionId}>
+                                {badgeInfo?.icon || '📋'} {session.wodName || session.wodId} - {session.categoryName || session.categoryId} ({session.startTime})
+                              </option>
+                            );
+                          })}
                         </select>
+                        
+                        {/* Display scoring system info for selected session */}
+                        {selectedSession && selectedWod && (
+                          <div style={{
+                            marginTop: '12px',
+                            padding: '12px',
+                            background: scoringSystem ? '#f8f9fa' : '#fff3cd',
+                            borderRadius: '6px',
+                            border: `1px solid ${scoringSystem ? '#e1e8ed' : '#ffc107'}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            fontSize: '13px'
+                          }}>
+                            {scoringSystem ? (
+                              <>
+                                <span className={`scoring-badge-inline ${getScoringBadgeInfo(selectedWod).className}`}>
+                                  {getScoringBadgeInfo(selectedWod).icon} {getScoringBadgeInfo(selectedWod).label}
+                                </span>
+                                <span style={{color: '#6c757d'}}>
+                                  {getScoringBadgeInfo(selectedWod).tooltip}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span style={{fontSize: '18px'}}>⚠️</span>
+                                <span style={{color: '#856404', fontWeight: '500'}}>
+                                  No scoring system configured for this WOD - using default advanced scoring
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -1207,15 +1390,16 @@ function ScoreEntry({ user: _user }) {
                         </div>
 
                         {selectedWod && scoringSystem?.type === 'time-based' && exerciseCompletionStatus.length > 0 && (
-                          <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
-                            <div style={{
-                              background: 'white',
-                              padding: '12px',
-                              borderRadius: '6px',
-                              marginBottom: '15px',
-                              borderLeft: '4px solid #FF5722'
-                            }}>
-                              <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
+                          <ScoringSystemTransition scoringType="time-based">
+                            <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
+                              <div style={{
+                                background: 'white',
+                                padding: '12px',
+                                borderRadius: '6px',
+                                marginBottom: '15px',
+                                borderLeft: '4px solid #FF5722'
+                              }}>
+                                <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                               <div style={{fontSize: '13px', color: '#666'}}>
                                 <div><strong>Format:</strong> {selectedWod.format}</div>
                                 {selectedWod.timeCap && (
@@ -1377,19 +1561,21 @@ function ScoreEntry({ user: _user }) {
                                 </small>
                               )}
                             </div>
-                          </div>
+                            </div>
+                          </ScoringSystemTransition>
                         )}
                         
                         {selectedWod && scoringSystem?.type !== 'time-based' && athletePerformance.length > 0 && (
-                          <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
-                            <div style={{
-                              background: 'white',
-                              padding: '12px',
-                              borderRadius: '6px',
-                              marginBottom: '15px',
-                              borderLeft: '4px solid #FF5722'
-                            }}>
-                              <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
+                          <ScoringSystemTransition scoringType={scoringSystem?.type || 'advanced'}>
+                            <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
+                              <div style={{
+                                background: 'white',
+                                padding: '12px',
+                                borderRadius: '6px',
+                                marginBottom: '15px',
+                                borderLeft: '4px solid #FF5722'
+                              }}>
+                                <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
                               <div style={{fontSize: '13px', color: '#666'}}>
                                 <div><strong>Format:</strong> {selectedWod.format}</div>
                                 {selectedWod.timeLimit && <div><strong>Time Cap:</strong> ⏱️ {selectedWod.timeLimit}</div>}
@@ -1507,6 +1693,8 @@ function ScoreEntry({ user: _user }) {
                               </div>
                             </div>
                           </div>
+                            </div>
+                          </ScoringSystemTransition>
                         )}
                       </>
                     )}
@@ -1588,6 +1776,22 @@ function ScoreEntry({ user: _user }) {
                     .sort((a, b) => parseFloat(b.score) - parseFloat(a.score))
                     .map((score, index) => {
                       const athlete = athletes.find(a => a.athleteId === score.athleteId);
+                      const scoreWod = wods.find(w => w.wodId === score.wodId);
+                      const isTimeBased = scoreWod && getWodScoringType(scoreWod) === 'time-based';
+                      
+                      // Format score based on scoring system type
+                      let formattedScore = score.score;
+                      if (isTimeBased) {
+                        // Check if score is a time format (contains :) or reps count
+                        if (score.score && score.score.includes(':')) {
+                          formattedScore = `⏱️ ${score.score}`;
+                        } else {
+                          formattedScore = `${score.score} reps`;
+                        }
+                      } else {
+                        formattedScore = `${score.score} pts`;
+                      }
+                      
                       return (
                         <div key={score.scoreId} className="table-row">
                           <span style={{fontWeight: 'bold', color: index < 3 ? '#FF5722' : '#666'}}>#{index + 1}</span>
@@ -1595,7 +1799,7 @@ function ScoreEntry({ user: _user }) {
                             {athlete ? `${athlete.firstName} ${athlete.lastName}` : score.athleteId}
                             {athlete?.alias && ` (${athlete.alias})`}
                           </span>
-                          <span className="score-value">{score.score} pts</span>
+                          <span className="score-value">{formattedScore}</span>
                           <span style={{fontSize: '13px', color: '#666'}}>
                             {score.rawData?.timeTaken || '-'}
                           </span>
@@ -1964,6 +2168,37 @@ function ScoreEntry({ user: _user }) {
           font-size: 14px;
         }
 
+        .scoring-badge-inline {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+
+        .scoring-badge-blue {
+          background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+          color: #1565c0;
+        }
+
+        .scoring-badge-orange {
+          background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+          color: #e65100;
+        }
+
+        .scoring-badge-green {
+          background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+          color: #2e7d32;
+        }
+
+        .scoring-badge-default {
+          background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+          color: #616161;
+        }
+
         @media (max-width: 768px) {
           .form-row {
             flex-direction: column;
@@ -1984,7 +2219,8 @@ function ScoreEntry({ user: _user }) {
           }
         }
       `}</style>
-    </div>
+      </div>
+    </ScoringSystemErrorBoundary>
   );
 }
 
