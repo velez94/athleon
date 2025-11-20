@@ -59,12 +59,23 @@ const AthleteScheduleViewer = ({ eventId }) => {
     if (!currentUser) return false;
     
     const userId = currentUser.username;
+    const userEmail = currentUser.attributes?.email;
     if (!userId) return false;
 
-    // Check if user is in athlete schedule
-    return session.athleteSchedule?.some(athlete => 
-      athlete.athleteId === userId
+    // Check if user is in athlete schedule (for HEATS mode)
+    const inAthleteSchedule = session.athleteSchedule?.some(athlete => 
+      athlete.athleteId === userId || athlete.athleteId === userEmail
     );
+    
+    // Check if user is in matches (for VERSUS mode)
+    const inMatches = session.matches?.some(match => 
+      match.athlete1?.userId === userId || 
+      match.athlete1?.userId === userEmail ||
+      match.athlete2?.userId === userId || 
+      match.athlete2?.userId === userEmail
+    );
+
+    return inAthleteSchedule || inMatches;
   };
 
   const getFilteredSessions = (day) => {
