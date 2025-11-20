@@ -15,6 +15,8 @@ function PublicEventDetail() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWod, setSelectedWod] = useState('');
   const [showSchedule, setShowSchedule] = useState(true); // Show by default
+  const [athleteSearch, setAthleteSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   useEffect(() => {
     fetchEventData();
@@ -149,14 +151,70 @@ function PublicEventDetail() {
               {showSchedule ? '▼ Collapse' : '▶ Expand'}
             </button>
           </div>
-          {showSchedule && schedules.map(schedule => (
+          {showSchedule && (
+            <>
+              <div style={{display: 'flex', gap: '12px', margin: '16px 0', flexWrap: 'wrap'}}>
+                <div style={{position: 'relative', flex: 1, minWidth: '200px'}}>
+                  <input
+                    type="text"
+                    placeholder="🔍 Search athlete..."
+                    value={athleteSearch}
+                    onChange={(e) => setAthleteSearch(e.target.value)}
+                    style={{width: '100%', padding: '10px 36px 10px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px'}}
+                  />
+                  {athleteSearch && (
+                    <button 
+                      onClick={() => setAthleteSearch('')}
+                      style={{position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: '#e0e0e0', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', fontSize: '12px'}}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  style={{flex: 1, minWidth: '200px', padding: '10px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', background: 'white'}}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(cat => (
+                    <option key={cat.categoryId} value={cat.categoryId}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {schedules.map(schedule => {
+                const filteredDays = schedule.days?.map(day => ({
+                  ...day,
+                  sessions: day.sessions?.filter(session => {
+                    if (categoryFilter && session.categoryId !== categoryFilter) return false;
+                    if (athleteSearch.trim()) {
+                      const searchLower = athleteSearch.toLowerCase();
+                      const hasAthlete = session.athleteSchedule?.some(athlete =>
+                        athlete.athleteName?.toLowerCase().includes(searchLower)
+                      ) || session.matches?.some(match =>
+                        match.athlete1?.name?.toLowerCase().includes(searchLower) ||
+                        match.athlete2?.name?.toLowerCase().includes(searchLower)
+                      );
+                      if (!hasAthlete) return false;
+                    }
+                    return true;
+                  })
+                })).filter(day => day.sessions?.length > 0);
+                
+                if (!filteredDays || filteredDays.length === 0) {
+                  return <div key={schedule.scheduleId} className="schedule-card"><p style={{textAlign: 'center', padding: '20px', color: '#666'}}>No matches found</p></div>;
+                }
+                
+                return (
             <div key={schedule.scheduleId} className="schedule-card">
               <h3>{schedule.name || 'Competition Schedule'}</h3>
               {schedule.competitionMode && (
                 <p className="schedule-mode">Mode: {schedule.competitionMode}</p>
               )}
               
-              {schedule.days && schedule.days.map(day => (
+              {filteredDays.map(day => (
                 <div key={day.dayId} className="day-schedule">
                   <h4>{day.name || 'Competition Day'}</h4>
                   {day.sessions && day.sessions.length > 0 ? (
@@ -181,6 +239,34 @@ function PublicEventDetail() {
                                 <span className="session-heats">🔥 {session.heatCount} heats</span>
                               )}
                             </div>
+                            
+                            {/* Show athletes */}
+                            {session.athleteSchedule && session.athleteSchedule.length > 0 && (
+                              <div className="session-athletes-list">
+                                <strong>Athletes:</strong>
+                                <div className="athletes-badges">
+                                  {session.athleteSchedule.map((athlete, aIdx) => (
+                                    <span key={aIdx} className="athlete-badge">
+                                      {athlete.athleteName || athlete.athleteId}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Show matches for VERSUS mode */}
+                            {session.matches && session.matches.length > 0 && (
+                              <div className="session-matches-list">
+                                <strong>Matches:</strong>
+                                {session.matches.map((match, mIdx) => (
+                                  <div key={mIdx} className="match-card">
+                                    <span className="athlete-name">{match.athlete1?.name || match.athlete1?.userId || 'TBD'}</span>
+                                    <span className="vs-text">VS</span>
+                                    <span className="athlete-name">{match.athlete2?.name || match.athlete2?.userId || 'BYE'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -191,7 +277,10 @@ function PublicEventDetail() {
                 </div>
               ))}
             </div>
-          ))}
+                );
+              })}
+            </>
+          )}
         </div>
       )}
 
@@ -436,9 +525,30 @@ function PublicEventDetail() {
           display: flex;
           gap: 15px;
           align-items: center;
+          max-width: 100%;
+          overflow: hidden;
         }
         .session-time {
           min-width: 100px;
+          flex-shrink: 0;
+        }
+        .session-details {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+        }
+        .session-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          overflow: hidden;
+        }
+        .session-wod,
+        .session-category {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
           color: #FF5722;
           font-weight: 600;
         }
@@ -658,6 +768,118 @@ function PublicEventDetail() {
           text-decoration: underline;
           cursor: pointer;
           font-weight: 600;
+        }
+        
+        /* Athlete display styles */
+        .session-athletes-list,
+        .session-matches-list {
+          margin-top: 12px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 6px;
+        }
+        .session-athletes-list strong,
+        .session-matches-list strong {
+          display: block;
+          margin-bottom: 8px;
+          color: #495057;
+          font-size: 14px;
+        }
+        .athletes-badges {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .athlete-badge {
+          padding: 4px 12px;
+          background: white;
+          border: 1px solid #dee2e6;
+          border-radius: 16px;
+          font-size: 13px;
+          white-space: nowrap;
+        }
+        .match-card {
+          padding: 8px;
+          background: white;
+          border: 1px solid #dee2e6;
+          border-radius: 6px;
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .match-card .athlete-name {
+          flex: 1;
+          font-weight: 500;
+          font-size: 14px;
+        }
+        .match-card .athlete-name:last-child {
+          text-align: right;
+        }
+        .match-card .vs-text {
+          color: #FF5722;
+          font-weight: bold;
+          font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+          .athlete-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+          }
+          .match-card {
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px;
+          }
+          .match-card .athlete-name {
+            text-align: center !important;
+            font-size: 13px;
+          }
+          .match-card .vs-text {
+            font-size: 11px;
+          }
+          .schedule-filters {
+            flex-direction: column;
+          }
+          .schedule-filters > div {
+            width: 100%;
+          }
+          .session-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px;
+          }
+          .session-time {
+            min-width: auto;
+            width: 100%;
+          }
+          .session-details {
+            width: 100%;
+          }
+          .session-wod,
+          .session-category {
+            white-space: normal;
+            word-break: break-word;
+          }
+        }
+        
+        /* Safari iOS fixes */
+        @supports (-webkit-touch-callout: none) {
+          .athlete-badge,
+          .match-card,
+          .session-athletes-list,
+          .session-matches-list {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+          }
+          input,
+          select {
+            -webkit-appearance: none;
+            appearance: none;
+            border-radius: 8px;
+          }
         }
         .signin-link:hover {
           opacity: 0.8;

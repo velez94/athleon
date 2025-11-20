@@ -10,6 +10,8 @@ const AthleteScheduleViewer = ({ eventId }) => {
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [loading, setLoading] = useState(false);
   const [filterMode, setFilterMode] = useState('all'); // 'all' or 'mine'
+  const [athleteSearch, setAthleteSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
 
   const fetchCurrentUser = async () => {
@@ -79,11 +81,45 @@ const AthleteScheduleViewer = ({ eventId }) => {
   };
 
   const getFilteredSessions = (day) => {
-    if (filterMode === 'all') {
-      return day.sessions || [];
+    let sessions = day.sessions || [];
+    
+    // Filter by mode (all or mine)
+    if (filterMode === 'mine') {
+      sessions = sessions.filter(session => isMyMatch(session));
     }
     
-    return (day.sessions || []).filter(session => isMyMatch(session));
+    // Filter by category
+    if (categoryFilter) {
+      sessions = sessions.filter(session => 
+        session.categoryId === categoryFilter || session.categoryName === categoryFilter
+      );
+    }
+    
+    // Filter by athlete search
+    if (athleteSearch.trim()) {
+      const searchLower = athleteSearch.toLowerCase();
+      sessions = sessions.filter(session => {
+        // Search in athlete schedule
+        const inAthleteSchedule = session.athleteSchedule?.some(athlete =>
+          athlete.athleteName?.toLowerCase().includes(searchLower) ||
+          athlete.athleteId?.toLowerCase().includes(searchLower)
+        );
+        
+        // Search in matches
+        const inMatches = session.matches?.some(match =>
+          match.athlete1?.name?.toLowerCase().includes(searchLower) ||
+          match.athlete1?.userId?.toLowerCase().includes(searchLower) ||
+          (match.athlete2 && (
+            match.athlete2.name?.toLowerCase().includes(searchLower) ||
+            match.athlete2.userId?.toLowerCase().includes(searchLower)
+          ))
+        );
+        
+        return inAthleteSchedule || inMatches;
+      });
+    }
+    
+    return sessions;
   };
 
   const highlightMyMatches = (session) => {
@@ -142,6 +178,44 @@ const AthleteScheduleViewer = ({ eventId }) => {
           >
             👤 My Matches
           </button>
+        </div>
+        
+        <div className="search-filters">
+          <div className="search-input-group">
+            <input
+              type="text"
+              placeholder="🔍 Search athlete..."
+              value={athleteSearch}
+              onChange={(e) => setAthleteSearch(e.target.value)}
+              className="search-input"
+            />
+            {athleteSearch && (
+              <button 
+                className="clear-btn" 
+                onClick={() => setAthleteSearch('')}
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          
+          <div className="category-filter-group">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="category-select"
+            >
+              <option value="">All Categories</option>
+              {selectedSchedule && [...new Set(
+                selectedSchedule.days?.flatMap(day => 
+                  day.sessions?.map(s => s.categoryName || s.categoryId) || []
+                ) || []
+              )].map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
