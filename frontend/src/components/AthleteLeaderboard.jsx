@@ -209,7 +209,7 @@ function AthleteLeaderboard({ userProfile }) {
       <div className="leaderboard-content">
         {leaderboard.length > 0 ? (
           <div className="leaderboard-list">
-            {leaderboard.map((entry) => (
+            {leaderboard.filter(entry => entry.athlete).map((entry) => (
               <div 
                 key={entry.athlete.userId} 
                 className={`leaderboard-card ${isCurrentUser(entry.athlete.userId) ? 'current-user' : ''}`}
