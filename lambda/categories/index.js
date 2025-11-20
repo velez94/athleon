@@ -327,8 +327,8 @@ exports.handler = async (event) => {
           };
         }
 
-        // Get categories for specific event
-        const { Items } = await ddb.send(new QueryCommand({
+        // Get event-specific categories
+        const { Items: eventCategories } = await ddb.send(new QueryCommand({
           TableName: CATEGORIES_TABLE,
           KeyConditionExpression: 'eventId = :eventId',
           ExpressionAttributeValues: {
@@ -336,10 +336,33 @@ exports.handler = async (event) => {
           }
         }));
         
+        // Get global/transversal categories
+        const { Items: globalCategories } = await ddb.send(new QueryCommand({
+          TableName: CATEGORIES_TABLE,
+          KeyConditionExpression: 'eventId = :eventId',
+          ExpressionAttributeValues: {
+            ':eventId': 'global'
+          }
+        }));
+        
+        // Combine both, event-specific categories take precedence
+        const allCategories = [...(eventCategories || []), ...(globalCategories || [])];
+        
+        // Deduplicate by categoryId (event-specific overrides global)
+        const uniqueCategories = [];
+        const seenIds = new Set();
+        
+        for (const category of allCategories) {
+          if (!seenIds.has(category.categoryId)) {
+            seenIds.add(category.categoryId);
+            uniqueCategories.push(category);
+          }
+        }
+        
         return {
           statusCode: 200,
           headers,
-          body: JSON.stringify(Items || [])
+          body: JSON.stringify(uniqueCategories)
         };
       } else {
         // Get all categories (deduplicated)

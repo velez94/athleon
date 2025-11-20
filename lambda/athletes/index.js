@@ -246,11 +246,14 @@ exports.handler = async (event) => {
         };
       }
 
-      // If super admin, return all athletes
-      if (authResult.user.email === 'admin@athleon.fitness') {
+      // If super admin, return all athletes (updated to check role attribute)
+      if (authResult.role === 'super_admin') {
+        console.log('🔑 Super admin detected - returning all athletes');
         const { Items } = await ddb.send(new ScanCommand({
           TableName: ATHLETES_TABLE
         }));
+        
+        console.log(`✅ Returning ${Items?.length || 0} athletes for super admin`);
         
         return {
           statusCode: 200,

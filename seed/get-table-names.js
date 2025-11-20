@@ -2,75 +2,77 @@
 
 const { CloudFormationClient, DescribeStackResourcesCommand } = require('@aws-sdk/client-cloudformation');
 
-const client = new CloudFormationClient({ region: 'us-east-2' });
+const STACK_NAME = 'Athleon-development';
+const REGION = 'us-east-2';
 
 async function getTableNames() {
+  console.log(`Getting table names from CloudFormation stack: ${STACK_NAME}`);
+
+  const client = new CloudFormationClient({ region: REGION });
+  
   try {
-    const response = await client.send(new DescribeStackResourcesCommand({
-      StackName: 'Athleon-development'
-    }));
-
-    const tables = {};
+    const command = new DescribeStackResourcesCommand({ StackName: STACK_NAME });
+    const response = await client.send(command);
     
-    response.StackResources
-      .filter(resource => resource.ResourceType === 'AWS::DynamoDB::Table')
-      .forEach(resource => {
-        const logicalId = resource.LogicalResourceId;
-        const physicalId = resource.PhysicalResourceId;
+    const tables = response.StackResources
+      .filter(r => r.ResourceType === 'AWS::DynamoDB::Table')
+      .reduce((acc, resource) => {
+        const logical = resource.LogicalResourceId;
+        const physical = resource.PhysicalResourceId;
         
-        if (logicalId.includes('Organizations') && logicalId.includes('OrganizationsTable')) {
-          tables.ORGANIZATIONS = physicalId;
-        } else if (logicalId.includes('OrganizationMembers')) {
-          tables.ORGANIZATION_MEMBERS = physicalId;
-        } else if (logicalId.includes('OrganizationEvents')) {
-          tables.ORGANIZATION_EVENTS = physicalId;
-        } else if (logicalId.includes('Events') && logicalId.includes('EventsTable')) {
-          tables.EVENTS = physicalId;
-        } else if (logicalId.includes('Athletes') && logicalId.includes('AthletesTable')) {
-          tables.ATHLETES = physicalId;
-        } else if (logicalId.includes('Categories')) {
-          tables.CATEGORIES = physicalId;
-        } else if (logicalId.includes('Wods') && logicalId.includes('WodsTable')) {
-          tables.WODS = physicalId;
-        } else if (logicalId.includes('ExerciseLibrary')) {
-          tables.EXERCISES = physicalId;
-        } else if (logicalId.includes('Roles')) {
-          tables.ROLES = physicalId;
-        } else if (logicalId.includes('Permissions')) {
-          tables.PERMISSIONS = physicalId;
-        } else if (logicalId.includes('UserRoles')) {
-          tables.USER_ROLES = physicalId;
+        if (logical.includes('OrganizationsOrganizationsTable')) {
+          acc.ORGANIZATIONS_TABLE = physical;
+        } else if (logical.includes('OrganizationMembersTable')) {
+          acc.ORGANIZATION_MEMBERS_TABLE = physical;
+        } else if (logical.includes('OrganizationEventsTable')) {
+          acc.ORGANIZATION_EVENTS_TABLE = physical;
+        } else if (logical.includes('CompetitionsEventsTable')) {
+          acc.EVENTS_TABLE = physical;
+        } else if (logical.includes('AthletesAthletesTable')) {
+          acc.ATHLETES_TABLE = physical;
+        } else if (logical.includes('AthleteEventsTable')) {
+          acc.ATHLETE_EVENTS_TABLE = physical;
+        } else if (logical.includes('CategoriesTable')) {
+          acc.CATEGORIES_TABLE = physical;
+        } else if (logical.includes('WodsTable')) {
+          acc.WODS_TABLE = physical;
+        } else if (logical.includes('ExerciseLibraryTable')) {
+          acc.EXERCISES_TABLE = physical;
+        } else if (logical.includes('ScoresTable')) {
+          acc.SCORES_TABLE = physical;
         }
-      });
-
-    // Get Cognito User Pool ID from stack outputs
-    const { CloudFormationClient: CFClient, DescribeStacksCommand } = require('@aws-sdk/client-cloudformation');
-    const cfClient = new CFClient({ region: 'us-east-2' });
+        
+        return acc;
+      }, {});
     
-    const stackResponse = await cfClient.send(new DescribeStacksCommand({
-      StackName: 'Athleon-development'
-    }));
-    
-    const userPoolOutput = stackResponse.Stacks[0].Outputs.find(output => 
-      output.OutputKey === 'UserPoolId'
+    // Get User Pool ID
+    const userPool = response.StackResources.find(r => 
+      r.ResourceType === 'AWS::Cognito::UserPool'
     );
-    
-    if (userPoolOutput) {
-      tables.USER_POOL_ID = userPoolOutput.OutputValue;
+    if (userPool) {
+      tables.USER_POOL_ID = userPool.PhysicalResourceId;
     }
-
+    
+    // Print and return
+    Object.entries(tables).forEach(([key, value]) => {
+      console.log(`${key}=${value}`);
+      process.env[key] = value;
+    });
+    
     return tables;
   } catch (error) {
-    console.error('Error getting table names:', error.message);
+    console.error('Error fetching table names:', error.message);
     process.exit(1);
   }
 }
 
-module.exports = { getTableNames };
-
-// If run directly, output the table names
+// If run directly, execute and export
 if (require.main === module) {
   getTableNames().then(tables => {
-    console.log(JSON.stringify(tables, null, 2));
+    // Export as shell variables for sourcing
+    console.log('\n# To use in shell, run:');
+    console.log('# eval $(node get-table-names.js)');
   });
 }
+
+module.exports = { getTableNames };

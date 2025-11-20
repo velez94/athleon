@@ -4,7 +4,7 @@ const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const WODS_TABLE = 'Athleon-development-WodsWodsTableC84CB78B-ZVG9JE0QE3CK';
+const WODS_TABLE = process.env.WODS_TABLE || 'Athleon-development-WodsWodsTableC84CB78B-ZVG9JE0QE3CK';
 
 const baselineWods = [
   // Men's Categories

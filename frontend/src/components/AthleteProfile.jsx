@@ -66,10 +66,6 @@ function AthleteProfile({ user, signOut }) {
     setEventDetails({ categories: [], wods: [], scores: [], athletes: [] });
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [user, fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -83,7 +79,11 @@ function AthleteProfile({ user, signOut }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [fetchProfile, fetchEvents, fetchCategories, fetchRegistrations]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Call fetchScores when events are loaded
   useEffect(() => {
@@ -93,7 +93,7 @@ function AthleteProfile({ user, signOut }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await get('/athletes');
       const userAthlete = response.find(athlete => 
@@ -121,9 +121,9 @@ function AthleteProfile({ user, signOut }) {
         categoryId: user?.attributes?.['custom:categoryId'] || null
       });
     }
-  };
+  }, [user]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const response = await get('/public/events');
       setEvents(response || []);
@@ -131,9 +131,9 @@ function AthleteProfile({ user, signOut }) {
       console.error('Error fetching events:', error);
       setEvents([]);
     }
-  };
+  }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await get('/categories');
       setCategories(response || []);
@@ -141,9 +141,9 @@ function AthleteProfile({ user, signOut }) {
       console.error('Error fetching categories:', error);
       setCategories([]);
     }
-  };
+  }, []);
 
-  const fetchRegistrations = async () => {
+  const fetchRegistrations = useCallback(async () => {
     try {
       // Fetch from athlete-competitions table
       const response = await get(`/athletes/${user?.attributes?.sub}/competitions`);
@@ -153,7 +153,7 @@ function AthleteProfile({ user, signOut }) {
       console.error('Error fetching registrations:', error);
       setRegistrations([]);
     }
-  };
+  }, [user]);
 
   const handleEditProfile = () => {
     setEditForm({...profile});

@@ -7,7 +7,9 @@ import { Construct } from 'constructs';
 import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface AthletesStackProps  {
-  stage: string;  eventBus: events.EventBus;
+  stage: string;
+  eventBus: events.EventBus;
+  sharedLayer: lambda.LayerVersion;
 }
 
 export class AthletesStack extends Construct {
@@ -45,7 +47,7 @@ export class AthletesStack extends Construct {
       sortKey: { name: 'registeredAt', type: dynamodb.AttributeType.STRING },
     });
 
-    // Athletes Lambda
+    // Athletes Lambda (with shared layer for auth utilities)
     this.athletesLambda = createBundledLambda(this, 'AthletesLambda', 'athletes', {
       environment: {
         ATHLETES_TABLE: this.athletesTable.tableName,
@@ -53,6 +55,7 @@ export class AthletesStack extends Construct {
         DOMAIN_EVENT_BUS: this.athletesEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
       },
+      layers: [props.sharedLayer],
     });
 
     // Grant permissions
