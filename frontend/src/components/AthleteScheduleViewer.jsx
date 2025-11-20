@@ -62,20 +62,33 @@ const AthleteScheduleViewer = ({ eventId }) => {
     const userEmail = currentUser.attributes?.email;
     if (!userId) return false;
 
+    console.log('🔍 isMyMatch check:', {
+      sessionId: session.sessionId,
+      categoryName: session.categoryName,
+      userId,
+      userEmail,
+      athleteSchedule: session.athleteSchedule,
+      matches: session.matches
+    });
+
     // Check if user is in athlete schedule (for HEATS mode)
-    const inAthleteSchedule = session.athleteSchedule?.some(athlete => 
-      athlete.athleteId === userId || athlete.athleteId === userEmail
-    );
+    const inAthleteSchedule = session.athleteSchedule?.some(athlete => {
+      const match = athlete.athleteId === userId || athlete.athleteId === userEmail;
+      if (match) console.log('✅ Found in athleteSchedule:', athlete);
+      return match;
+    });
     
     // Check if user is in matches (for VERSUS mode)
-    const inMatches = session.matches?.some(match => 
-      match.athlete1?.userId === userId || 
-      match.athlete1?.userId === userEmail ||
-      match.athlete2?.userId === userId || 
-      match.athlete2?.userId === userEmail
-    );
+    const inMatches = session.matches?.some(match => {
+      const match1 = match.athlete1?.userId === userId || match.athlete1?.userId === userEmail;
+      const match2 = match.athlete2?.userId === userId || match.athlete2?.userId === userEmail;
+      if (match1 || match2) console.log('✅ Found in matches:', match);
+      return match1 || match2;
+    });
 
-    return inAthleteSchedule || inMatches;
+    const result = inAthleteSchedule || inMatches;
+    console.log('🎯 isMyMatch result:', result);
+    return result;
   };
 
   const getFilteredSessions = (day) => {
