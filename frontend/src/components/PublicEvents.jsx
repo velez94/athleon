@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { get } from 'aws-amplify/api';
+import { publicGet } from '../lib/api';
 import LanguageSwitcher from './common/LanguageSwitcher';
 
 function PublicEvents() {
@@ -16,12 +16,7 @@ function PublicEvents() {
 
   const fetchPublishedEvents = async () => {
     try {
-      // Use Amplify API directly - handles CORS and auth automatically
-      const response = await get({
-        apiName: 'CalisthenicsAPI',
-        path: '/public/events'
-      }).response;
-      const data = await response.body.json();
+      const data = await publicGet('/public/events');
       console.log('Published events:', data);
       setEvents(data || []);
     } catch (error) {

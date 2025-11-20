@@ -215,9 +215,17 @@ export class AthleonStack extends cdk.Stack {
     // Public events
     const publicRoot = networkStack.api.root.addResource('public');
     const publicEvents = publicRoot.addResource('events');
-    publicEvents.addMethod('GET', new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda));
-    publicEvents.addResource('{proxy+}').addMethod('GET', 
-      new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda)
+    publicEvents.addMethod('GET', new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda), {
+      authorizationType: apigateway.AuthorizationType.NONE,
+      authorizer: undefined
+    });
+    const publicEventsProxy = publicEvents.addResource('{proxy+}');
+    publicEventsProxy.addMethod('GET', 
+      new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda),
+      { 
+        authorizationType: apigateway.AuthorizationType.NONE,
+        authorizer: undefined
+      }
     );
 
     // Public Exercises

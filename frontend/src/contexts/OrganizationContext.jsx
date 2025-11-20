@@ -80,15 +80,21 @@ export const OrganizationProvider = ({ children }) => {
         console.log('🔍 Setting default organization:', defaultOrg);
         setSelectedOrganization(defaultOrg);
       } else {
+        console.log('🔍 Regular user, setting organizations:', orgs);
         setOrganizations(orgs);
         
         const savedOrgId = localStorage.getItem('selectedOrganizationId');
+        console.log('🔍 Saved org ID from localStorage:', savedOrgId);
         const defaultOrg = savedOrgId 
-          ? orgs.find(o => o.organizationId === savedOrgId) 
+          ? orgs.find(o => o.organizationId === savedOrgId) || orgs[0]
           : orgs[0];
         
+        console.log('🔍 Default organization to set:', defaultOrg);
         if (defaultOrg) {
+          console.log('✅ Setting selectedOrganization to:', defaultOrg);
           setSelectedOrganization(defaultOrg);
+        } else {
+          console.log('❌ No default organization found');
         }
       }
     } catch (error) {

@@ -42,14 +42,19 @@ function Leaderboard() {
   }, [selectedEvent, selectedWod, selectedCategory, view]);
 
   const fetchEvents = async () => {
-    if (!selectedOrganization) return;
+    if (!selectedOrganization) {
+      console.log('❌ fetchEvents: No selectedOrganization');
+      return;
+    }
     try {
+      console.log('📡 fetchEvents: Fetching for org:', selectedOrganization.organizationId);
       const response = await get('/competitions', {
         queryStringParameters: { organizationId: selectedOrganization.organizationId }
       });
       setEvents(response || []);
     } catch (error) {
       console.error('Error fetching events:', error);
+      setEvents([]);
     }
   };
 

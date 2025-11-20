@@ -67,14 +67,12 @@ exports.handler = async (event) => {
     
     // Extract path
     let path = event.path || '';
-    if (event.pathParameters?.proxy) {
-      path = '/' + event.pathParameters.proxy;
-    }
+    // Don't override path with proxy parameter - keep full path to preserve /public prefix
     
     // Clean path
     if (path.startsWith('/competitions')) {
       path = path.substring('/competitions'.length);
-    } else if (path.startsWith('/events')) {
+    } else if (path.startsWith('/events') && !path.startsWith('/public/events')) {
       path = path.substring('/events'.length);
     }
     
@@ -102,7 +100,7 @@ exports.handler = async (event) => {
 
     // GET /public/events/{eventId} - Get single published event
     if (path.startsWith('/public/events/') && method === 'GET') {
-      const publicEventId = pathParts[1];
+      const publicEventId = pathParts[2]; // pathParts = ['public', 'events', 'evt-demo-2025']
       const event = await service.getEvent(publicEventId);
       
       if (!event || !event.published) {

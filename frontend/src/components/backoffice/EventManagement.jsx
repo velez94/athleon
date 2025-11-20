@@ -49,8 +49,12 @@ function EventManagement() {
   const wodFormats = ['AMRAP', 'Chipper', 'EMOM', 'RFT', 'Ladder', 'Tabata'];
 
   useEffect(() => {
+    console.log('🔍 EventManagement useEffect triggered, selectedOrganization:', selectedOrganization);
     if (selectedOrganization) {
+      console.log('✅ selectedOrganization exists, calling fetchEvents');
       fetchEvents();
+    } else {
+      console.log('❌ No selectedOrganization, skipping fetchEvents');
     }
   }, [selectedOrganization]);
 
@@ -69,10 +73,16 @@ function EventManagement() {
   }, [location]);
 
   const fetchEvents = async () => {
-    if (!selectedOrganization) return;
+    console.log('🔍 fetchEvents called, selectedOrganization:', selectedOrganization);
+    if (!selectedOrganization) {
+      console.log('❌ No selectedOrganization, skipping fetch');
+      return;
+    }
     
     try {
+      console.log('📡 Fetching events for organization:', selectedOrganization.organizationId);
       const body = await get(`/competitions?organizationId=${selectedOrganization.organizationId}`);
+      console.log('✅ Events fetched:', body);
       
       // Process events with basic data only - no additional API calls
       const eventsWithData = (body || []).map(event => {
@@ -99,8 +109,10 @@ function EventManagement() {
       });
       
       setEvents(eventsWithData);
+      console.log('✅ Events set in state:', eventsWithData.length, 'events');
     } catch (error) {
-      console.error('Error fetching events:', error);
+      console.error('❌ Error fetching events:', error);
+      setEvents([]);
     }
   };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { get } from 'aws-amplify/api';
+import { publicGet } from '../lib/api';
 import LoadingSpinner from './common/Loading/LoadingSpinner';
 
 function PublicEventDetail() {
@@ -29,12 +29,8 @@ function PublicEventDetail() {
 
   const fetchEventData = async () => {
     try {
-      // Use Amplify API directly
-      const eventResponse = await get({
-        apiName: 'CalisthenicsAPI',
-        path: `/public/events/${eventId}`
-      }).response;
-      const eventData = await eventResponse.body.json();
+      // Use publicGet for unauthenticated public endpoint
+      const eventData = await publicGet(`/public/events/${eventId}`);
 
       if (!eventData.published) {
         navigate('/events');
@@ -45,21 +41,17 @@ function PublicEventDetail() {
 
       // Fetch public data
       try {
-        const [categoriesResponse, wodsResponse, schedulesResponse] = await Promise.all([
-          get({ apiName: 'CalisthenicsAPI', path: `/public/categories?eventId=${eventId}` }).response,
-          get({ apiName: 'CalisthenicsAPI', path: `/public/wods?eventId=${eventId}` }).response,
-          get({ apiName: 'CalisthenicsAPI', path: `/public/schedules/${eventId}` }).response
+        const [categoriesRes, wodsRes, schedulesRes] = await Promise.all([
+          publicGet(`/public/categories?eventId=${eventId}`),
+          publicGet(`/public/wods?eventId=${eventId}`),
+          publicGet(`/public/schedules/${eventId}`)
         ]);
 
-        const categoriesRes = await categoriesResponse.body.json();
-        const wodsRes = await wodsResponse.body.json();
-        const schedulesRes = await schedulesResponse.body.json();
+        setCategories(categoriesRes || []);
+        setWods(wodsRes || []);
+        setSchedules(schedulesRes || []);
 
-        setCategories(categoriesRes);
-        setWods(wodsRes);
-        setSchedules(schedulesRes);
-
-        if (categoriesRes.length > 0) setSelectedCategory(categoriesRes[0].categoryId);
+        if (categoriesRes && categoriesRes.length > 0) setSelectedCategory(categoriesRes[0].categoryId);
 
         // Fetch public scores if publicLeaderboard is enabled
         if (eventData.publicLeaderboard) {
